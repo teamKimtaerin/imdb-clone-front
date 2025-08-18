@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",        // ESLint
+    "esbenp.prettier-vscode",        // Prettier
+    "bradlc.vscode-tailwindcss",     // Tailwind IntelliSense
+    "EditorConfig.EditorConfig"      // (선택) EditorConfig
+  ]
+}

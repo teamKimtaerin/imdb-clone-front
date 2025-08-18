@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import reactHooks from "eslint-plugin-react-hooks";
 import storybook from "eslint-plugin-storybook";
+import reactHooks from "eslint-plugin-react-hooks";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,7 +15,7 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  // 1) Global ignores - 가장 먼저 선언
+  // 1) Global ignores for build artifacts (Flat Config global ignores) - 가장 먼저 선언
   {
     ignores: [
       "**/node_modules/**",
@@ -53,6 +54,19 @@ const eslintConfig = [
     plugins: { 
       "react-hooks": reactHooks 
     },
+    ],
+  },
+
+  // 2) Next.js recommended + TypeScript + Prettier conflict disable
+  ...compat.extends(
+    "next/core-web-vitals",
+    "next/typescript",
+    "prettier" // eslint-config-prettier
+  ),
+
+  // 3) React Hooks rules
+  {
+    plugins: { "react-hooks": reactHooks },
     rules: {
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",

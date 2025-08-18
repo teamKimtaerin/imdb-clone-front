@@ -1,11 +1,4 @@
 // postcss.config.mjs
-
-// 기존 형식 (배열 기반) - Next.js만 지원
-// export default {
-//   plugins: ['tailwindcss', 'autoprefixer'],
-// }
-// postcss.config.mjs
-
 const config = {
   plugins: {
     '@tailwindcss/postcss': {},

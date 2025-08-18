@@ -1,0 +1,9 @@
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "endOfLine": "auto",
+  "tailwindStylesheet": "src/app/globals.css"
+}
