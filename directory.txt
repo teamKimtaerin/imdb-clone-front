@@ -1,6 +1,6 @@
 .
+├── directory.txt
 ├── eslint.config.mjs
-├── next-env.d.ts
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
@@ -53,4 +53,4 @@
 │   └── utils
 └── tsconfig.json
 
-37 directories, 18 files
+37 directories, 17 files
