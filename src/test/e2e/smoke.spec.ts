@@ -7,11 +7,19 @@ const MOVIE_TITLE = 'Inception';
 test.describe('Smoke', () => {
   test('A) 로그인 → 메인', async ({ page }) => {
     // Mock login and refresh endpoints (adjust to your actual routes if different)
-    await page.route('**/api/auth/login', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, user: { name: 'Jactio' } }) })
+    await page.route('**/api/auth/login', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, user: { name: 'Jactio' } }),
+      }),
     );
-    await page.route('**/api/auth/refresh', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) })
+    await page.route('**/api/auth/refresh', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      }),
     );
 
     await page.goto('/login');
@@ -28,8 +36,12 @@ test.describe('Smoke', () => {
 
   test('B) 메인 검색 → 결과 반영', async ({ page }) => {
     // Mock search API. If you later adopt `/search?q=...`, you can assert URL as well.
-    await page.route('**/api/search?**', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ results: [{ id: MOVIE_ID, title: MOVIE_TITLE }] }) })
+    await page.route('**/api/search?**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [{ id: MOVIE_ID, title: MOVIE_TITLE }] }),
+      }),
     );
 
     await page.goto('/');
@@ -45,11 +57,23 @@ test.describe('Smoke', () => {
 
   test('C-1) 카드 → 모달 상세(인터셉트)', async ({ page }) => {
     // Mock list and detail to keep test deterministic
-    await page.route('**/api/search?**', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ results: [{ id: MOVIE_ID, title: MOVIE_TITLE }] }) })
+    await page.route('**/api/search?**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [{ id: MOVIE_ID, title: MOVIE_TITLE }] }),
+      }),
     );
-    await page.route(`**/api/movies/${MOVIE_ID}`, route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: MOVIE_ID, title: MOVIE_TITLE, overview: 'A mind-bending sci‑fi heist.' }) })
+    await page.route(`**/api/movies/${MOVIE_ID}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: MOVIE_ID,
+          title: MOVIE_TITLE,
+          overview: 'A mind-bending sci‑fi heist.',
+        }),
+      }),
     );
 
     await page.goto('/');
@@ -71,8 +95,12 @@ test.describe('Smoke', () => {
   });
 
   test('C-2) 딥링크 상세 페이지', async ({ page }) => {
-    await page.route(`**/api/movies/${MOVIE_ID}`, route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: MOVIE_ID, title: MOVIE_TITLE, overview: '...' }) })
+    await page.route(`**/api/movies/${MOVIE_ID}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: MOVIE_ID, title: MOVIE_TITLE, overview: '...' }),
+      }),
     );
 
     // Current folder structure uses /movie/[id]. If you later rename to /movies/[id], update this path.
