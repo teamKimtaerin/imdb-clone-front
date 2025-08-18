@@ -1,5 +1,5 @@
 // src/components/banner/HeroBanner/HeroBanner.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { HeroBanner } from './HeroBanner';
 
 const meta = {

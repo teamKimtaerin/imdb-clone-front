@@ -7,20 +7,23 @@
     "npm": ">=8.0.0"
   },
   "scripts": {
-    "dev": "next dev ",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed --project=chromium",
-    "prepare": "husky"
+    "prepare": "husky",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "next": "15.4.6",
@@ -30,38 +33,29 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.0",
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.54.2",
     "@storybook/addon-a11y": "^9.1.2",
     "@storybook/addon-docs": "^9.1.2",
-    "@storybook/addon-onboarding": "^9.1.2",
     "@storybook/addon-vitest": "^9.1.2",
-    "@storybook/nextjs": "^9.1.2",
     "@storybook/nextjs-vite": "^9.1.2",
-    "@eslint/eslintrc": "^3",
-    "@playwright/test": "^1.54.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/browser": "^3.2.4",
-    "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9",
-    "eslint-config-next": "15.4.6",
-    "eslint-plugin-storybook": "^9.1.2",
-    "playwright": "^1.54.2",
-    "storybook": "^9.1.2",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^3.2.4"
+    "@vitest/ui": "^3.2.4",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-storybook": "^9.1.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.5",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
+    "storybook": "^9.1.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

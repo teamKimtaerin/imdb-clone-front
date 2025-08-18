@@ -1,0 +1,2 @@
+# 모든 경로의 package-lock.json에 대해 diff 생성 비활성화
+**/package-lock.json -diff

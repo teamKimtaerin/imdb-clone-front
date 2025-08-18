@@ -1,5 +1,5 @@
 // src/components/movie/MovieCard/MovieCard.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { MovieCard } from './MovieCard';
 
 const meta = {

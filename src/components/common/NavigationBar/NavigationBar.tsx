@@ -10,65 +10,67 @@ interface NavigationBarProps {
   onMenuClick?: (menu: string) => void;
 }
 
-export const NavigationBar: React.FC<NavigationBarProps> = ({ 
+export const NavigationBar: React.FC<NavigationBarProps> = ({
   activeMenu = '홈',
   onSearch,
-  onMenuClick
+  onMenuClick,
 }) => {
   const [searchValue, setSearchValue] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  
+
   const menuItems = ['홈', '탐색', '평가', '보고싶어요', '프로필'];
-  
+
   const navStyle: React.CSSProperties = {
     background: watchaTokens.colors.background,
     borderBottom: `1px solid ${watchaTokens.colors.border}`,
     padding: `${watchaTokens.spacing.md} ${watchaTokens.spacing.xl}`,
     position: 'sticky',
     top: 0,
-    zIndex: 100
+    zIndex: 100,
   };
-  
+
   const containerStyle: React.CSSProperties = {
     maxWidth: '1320px',
     margin: '0 auto',
     display: 'flex',
     alignItems: 'center',
-    gap: watchaTokens.spacing.xl
+    gap: watchaTokens.spacing.xl,
   };
-  
+
   const logoStyle: React.CSSProperties = {
     color: watchaTokens.colors.primary,
     fontSize: watchaTokens.typography.fontSize['2xl'],
     fontWeight: watchaTokens.typography.fontWeight.bold,
     letterSpacing: '-1px',
     cursor: 'pointer',
-    userSelect: 'none'
+    userSelect: 'none',
   };
-  
+
   const menuStyle: React.CSSProperties = {
     display: 'flex',
     gap: watchaTokens.spacing.lg,
-    marginLeft: watchaTokens.spacing.xl
+    marginLeft: watchaTokens.spacing.xl,
   };
-  
+
   const menuItemStyle = (isActive: boolean): React.CSSProperties => ({
     color: isActive ? watchaTokens.colors.text.primary : watchaTokens.colors.text.secondary,
     fontSize: watchaTokens.typography.fontSize.base,
-    fontWeight: isActive ? watchaTokens.typography.fontWeight.medium : watchaTokens.typography.fontWeight.normal,
+    fontWeight: isActive
+      ? watchaTokens.typography.fontWeight.medium
+      : watchaTokens.typography.fontWeight.normal,
     cursor: 'pointer',
     transition: 'color 0.2s ease',
     textDecoration: 'none',
-    userSelect: 'none'
+    userSelect: 'none',
   });
-  
+
   const searchContainerStyle: React.CSSProperties = {
     flex: 1,
     maxWidth: '400px',
     marginLeft: 'auto',
-    position: 'relative'
+    position: 'relative',
   };
-  
+
   const searchStyle: React.CSSProperties = {
     width: '100%',
     padding: `${watchaTokens.spacing.sm} ${watchaTokens.spacing.md}`,
@@ -79,9 +81,9 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
     color: watchaTokens.colors.text.primary,
     fontSize: watchaTokens.typography.fontSize.sm,
     outline: 'none',
-    transition: 'all 0.2s ease'
+    transition: 'all 0.2s ease',
   };
-  
+
   const searchIconStyle: React.CSSProperties = {
     position: 'absolute',
     right: '12px',
@@ -89,9 +91,9 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
     transform: 'translateY(-50%)',
     color: watchaTokens.colors.text.secondary,
     cursor: 'pointer',
-    fontSize: '18px'
+    fontSize: '18px',
   };
-  
+
   const profileBtnStyle: React.CSSProperties = {
     padding: `${watchaTokens.spacing.sm} ${watchaTokens.spacing.md}`,
     background: watchaTokens.colors.primary,
@@ -101,24 +103,24 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
     fontSize: watchaTokens.typography.fontSize.sm,
     fontWeight: watchaTokens.typography.fontWeight.medium,
     cursor: 'pointer',
-    transition: 'all 0.2s ease'
+    transition: 'all 0.2s ease',
   };
-  
+
   const handleSearch = () => {
     if (onSearch && searchValue.trim()) {
       onSearch(searchValue);
     }
   };
-  
+
   return (
     <nav style={navStyle}>
       <div style={containerStyle}>
         <div style={logoStyle}>WATCHA</div>
-        
+
         <div style={menuStyle}>
-          {menuItems.slice(0, 2).map(item => (
-            <span 
-              key={item} 
+          {menuItems.slice(0, 2).map((item) => (
+            <span
+              key={item}
               style={menuItemStyle(activeMenu === item)}
               onClick={() => onMenuClick?.(item)}
               onMouseEnter={(e) => {
@@ -136,7 +138,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
             </span>
           ))}
         </div>
-        
+
         <div style={searchContainerStyle}>
           <input
             type="text"
@@ -148,10 +150,12 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             style={searchStyle}
           />
-          <span style={searchIconStyle} onClick={handleSearch}>🔍</span>
+          <span style={searchIconStyle} onClick={handleSearch}>
+            🔍
+          </span>
         </div>
-        
-        <button 
+
+        <button
           style={profileBtnStyle}
           onMouseEnter={(e) => {
             (e.target as HTMLElement).style.background = watchaTokens.colors.primaryDark;

@@ -1,5 +1,5 @@
 // src/components/category/CategoryTag/CategoryTag.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { CategoryTag } from './CategoryTag';
 
 const meta = {

@@ -42,10 +42,10 @@ export const Button: React.FC<ButtonProps> = ({
   // 버튼 변형별 스타일
   const variants = {
     primary: {
-      background: isPressed 
-        ? watchaTokens.colors.primaryDark 
-        : isHovered 
-          ? watchaTokens.colors.primaryDark 
+      background: isPressed
+        ? watchaTokens.colors.primaryDark
+        : isHovered
+          ? watchaTokens.colors.primaryDark
           : watchaTokens.colors.primary,
       color: watchaTokens.colors.text.primary,
       border: 'none',
@@ -77,18 +77,12 @@ export const Button: React.FC<ButtonProps> = ({
         : isHovered
           ? watchaTokens.colors.surfaceHover
           : 'transparent',
-      color: isHovered 
-        ? watchaTokens.colors.text.primary 
-        : watchaTokens.colors.text.secondary,
+      color: isHovered ? watchaTokens.colors.text.primary : watchaTokens.colors.text.secondary,
       border: 'none',
       boxShadow: 'none',
     },
     danger: {
-      background: isPressed
-        ? '#dc2626'
-        : isHovered
-          ? '#dc2626'
-          : '#ef4444',
+      background: isPressed ? '#dc2626' : isHovered ? '#dc2626' : '#ef4444',
       color: watchaTokens.colors.text.primary,
       border: 'none',
       boxShadow: isHovered ? '0 4px 12px rgba(239, 68, 68, 0.3)' : 'none',
@@ -148,7 +142,8 @@ export const Button: React.FC<ButtonProps> = ({
     gap: children ? watchaTokens.spacing.sm : 0,
     position: 'relative',
     overflow: 'hidden',
-    transform: isPressed && !disabled ? 'scale(0.98)' : isHovered && !disabled ? 'translateY(-1px)' : 'none',
+    transform:
+      isPressed && !disabled ? 'scale(0.98)' : isHovered && !disabled ? 'translateY(-1px)' : 'none',
     userSelect: 'none',
     ...style,
   };
@@ -176,7 +171,9 @@ export const Button: React.FC<ButtonProps> = ({
       />
       <style jsx>{`
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </svg>

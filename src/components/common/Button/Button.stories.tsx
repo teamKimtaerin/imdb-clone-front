@@ -1,5 +1,5 @@
 // src/components/common/Button/Button.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { Button, IconButton } from './Button';
 
 const meta: Meta<typeof Button> = {
@@ -11,9 +11,9 @@ const meta: Meta<typeof Button> = {
       default: 'dark',
       values: [
         { name: 'dark', value: '#000000' },
-        { name: 'light', value: '#ffffff' }
-      ]
-    }
+        { name: 'light', value: '#ffffff' },
+      ],
+    },
   },
   tags: ['autodocs'],
   argTypes: {
@@ -114,7 +114,9 @@ export const Loading: Story = {
   render: () => (
     <div style={{ display: 'flex', gap: '16px' }}>
       <Button loading>로딩 중...</Button>
-      <Button variant="secondary" loading>처리 중...</Button>
+      <Button variant="secondary" loading>
+        처리 중...
+      </Button>
     </div>
   ),
 };
@@ -122,10 +124,14 @@ export const Loading: Story = {
 // 아이콘 포함
 export const WithIcons: Story = {
   render: () => (
-    <div style={{ display: 'flex', gap: '16px', flexDirection: 'column', alignItems: 'flex-start' }}>
+    <div
+      style={{ display: 'flex', gap: '16px', flexDirection: 'column', alignItems: 'flex-start' }}
+    >
       <Button startIcon="▶">재생</Button>
       <Button endIcon="→">다음 에피소드</Button>
-      <Button startIcon="+" endIcon="→">내 리스트에 추가</Button>
+      <Button startIcon="+" endIcon="→">
+        내 리스트에 추가
+      </Button>
     </div>
   ),
 };
@@ -134,9 +140,15 @@ export const WithIcons: Story = {
 export const IconButtons: Story = {
   render: () => (
     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-      <IconButton size="sm" variant="primary">♥</IconButton>
-      <IconButton size="md" variant="secondary">⭐</IconButton>
-      <IconButton size="lg" variant="ghost">⚙</IconButton>
+      <IconButton size="sm" variant="primary">
+        ♥
+      </IconButton>
+      <IconButton size="md" variant="secondary">
+        ⭐
+      </IconButton>
+      <IconButton size="lg" variant="ghost">
+        ⚙
+      </IconButton>
     </div>
   ),
 };

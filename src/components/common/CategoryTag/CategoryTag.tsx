@@ -10,13 +10,9 @@ interface CategoryTagProps {
   onClick?: () => void;
 }
 
-export const CategoryTag: React.FC<CategoryTagProps> = ({ 
-  label, 
-  isActive = false, 
-  onClick 
-}) => {
+export const CategoryTag: React.FC<CategoryTagProps> = ({ label, isActive = false, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const tagStyle: React.CSSProperties = {
     padding: `${watchaTokens.spacing.sm} ${watchaTokens.spacing.md}`,
     background: isActive ? watchaTokens.colors.primary : watchaTokens.colors.surface,
@@ -30,9 +26,9 @@ export const CategoryTag: React.FC<CategoryTagProps> = ({
     transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
     boxShadow: isHovered ? '0 4px 12px rgba(255, 5, 88, 0.2)' : 'none',
     display: 'inline-block',
-    userSelect: 'none' as const
+    userSelect: 'none' as const,
   };
-  
+
   return (
     <button
       style={tagStyle}
