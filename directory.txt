@@ -1,6 +1,6 @@
 .
+├── directory.txt
 ├── eslint.config.mjs
-├── next-env.d.ts
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
