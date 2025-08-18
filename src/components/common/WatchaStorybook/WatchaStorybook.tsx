@@ -7,6 +7,7 @@ import { NavigationBar } from '@/components/common/NavigationBar';
 import { MovieCard } from '@/components/movie/MovieCard';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { HeroBanner } from '@/components/common/HeroBanner';
+import {Button} from '@/components/common/Button';
 
 export default function WatchaStorybook() {
     const [selectedComponent, setSelectedComponent] = useState('NavigationBar');
@@ -22,7 +23,8 @@ export default function WatchaStorybook() {
         'MovieCard',
         'CategoryTag',
         'HeroBanner',
-        'AllComponents'
+        'Button',
+        'AllComponents',
     ];
     
     const categories = ['액션', '로맨스', '코미디', 'SF', '공포', '스릴러', '판타지', '다큐'];
@@ -197,6 +199,44 @@ export default function WatchaStorybook() {
                 </div>
               </div>
             );
+          case 'Button':
+            return (
+<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  {/* 변형별 */}
+                  <div>
+                    <h3 style={{ color: '#fff', marginBottom: '12px' }}>Variants</h3>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      <Button variant="primary">Primary</Button>
+                      <Button variant="secondary">Secondary</Button>
+                      <Button variant="ghost">Ghost</Button>
+                      <Button variant="text">Text</Button>
+                      <Button variant="danger">Danger</Button>
+                    </div>
+                  </div>
+            
+                  {/* 상태별 */}
+                  <div>
+                    <h3 style={{ color: '#fff', marginBottom: '12px' }}>States</h3>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      <Button>Normal</Button>
+                      <Button disabled>Disabled</Button>
+                      <Button loading>Loading</Button>
+                    </div>
+                  </div>
+            
+                  {/* 크기별 */}
+                  <div>
+                    <h3 style={{ color: '#fff', marginBottom: '12px' }}>Sizes</h3>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Button size="xs">Extra Small</Button>
+                      <Button size="sm">Small</Button>
+                      <Button size="md">Medium</Button>
+                      <Button size="lg">Large</Button>
+                      <Button size="xl">Extra Large</Button>
+                    </div>
+                  </div>
+                </div>
+            )
             
           case 'AllComponents':
             return (
