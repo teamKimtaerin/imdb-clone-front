@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 새 커밋이 푸시되면 이전 실행 취소
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint · TypeCheck · Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node (22.x) with npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm' # package-lock 기반 의존성 캐시
+
+      - name: Install deps (npm ci)
+        run: npm ci
+
+      # Next.js 빌드 캐시(.next/cache) 보존
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
+
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    needs: quality
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node (22.x) with npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps (npm ci)
+        run: npm ci
+
+      # Playwright 브라우저 & 시스템 의존성 설치 (공식)
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # Next.js 캐시 복원 (선택) — dev 서버 기반 테스트라도 SSR 준비 가속화에 유익
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+
+      # Playwright가 webServer 설정을 읽어 dev 서버를 자동 기동
+      - name: Run E2E (headless)
+        run: npm run test:e2e
+
+      # 실패 시 리포트 업로드(HTML 등)
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Comment on PR when E2E failed
+        if: ${{ failure() && github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '⚠️ **E2E 실패** — 병합은 가능하지만, 아래 아티팩트를 확인하세요.',
+              '- Artifacts: **playwright-report/** (HTML 리포트)'
+            ].join('\n');
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

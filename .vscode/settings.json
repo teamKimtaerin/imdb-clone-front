@@ -1,0 +1,30 @@
+{
+  // === 저장 시 자동 포맷/수정 ===
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // ESLint가 가능한 경우 자동 고침(Flat Config 포함)
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // 언어별 명시(혼선 방지)
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[javascriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[css]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  // ESLint 확장(Flat Config) 호환을 확실히
+  "eslint.useFlatConfig": true,
+
+  // Tailwind CSS IntelliSense 개선
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.includeLanguages": { "plaintext": "html" },
+
+  // 파일 관련(권장)
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true
+}
