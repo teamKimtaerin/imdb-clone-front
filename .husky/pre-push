@@ -1,0 +1,21 @@
+# .husky/pre-push
+#!/bin/sh
+echo "🔍 Running pre-push checks..."
+
+# TypeScript 타입 체크
+echo "Checking TypeScript types..."
+npm run type-check || exit 1
+
+# 빌드 테스트
+echo "Testing build..."
+npm run build || exit 1
+
+# # 단위 테스트 실행
+# echo "Running tests..."
+# npm run test || exit 1
+
+# # E2E 테스트 (선택적)
+# echo "Running E2E tests..."
+# npm run test:e2e || exit 1
+
+echo "✅ All pre-push checks passed!"
