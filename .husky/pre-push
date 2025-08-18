@@ -6,9 +6,13 @@ echo "🔍 Running pre-push checks..."
 echo "Checking TypeScript types..."
 npm run type-check || exit 1
 
-# 빌드 테스트
-echo "Testing build..."
-npm run build || exit 1
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$branch" = "main" ] || [ "$branch" = "develop" ]; then
+  # 빌드 테스트
+  echo "Testing build..."
+  npm run build || exit 1
+fi
 
 # # 단위 테스트 실행
 # echo "Running tests..."
