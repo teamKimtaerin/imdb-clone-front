@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 # 새 커밋이 푸시되면 이전 실행 취소
 concurrency:
