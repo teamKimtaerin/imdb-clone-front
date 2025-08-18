@@ -4,6 +4,7 @@
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
+├── playwright.config.ts
 ├── postcss.config.mjs
 ├── public
 │   ├── file.svg
@@ -49,8 +50,10 @@
 │   ├── store
 │   ├── styles
 │   ├── test
+│   │   └── e2e
+│   │       └── smoke.spec.ts
 │   ├── types
 │   └── utils
 └── tsconfig.json
 
-37 directories, 18 files
+38 directories, 20 files
