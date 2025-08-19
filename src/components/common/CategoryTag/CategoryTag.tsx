@@ -4,12 +4,6 @@
 import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
 
-export interface CategoryTagProps {
-  label: string;
-  isActive: boolean;
-  onClick?: () => void;
-}
-
 export const CategoryTag: React.FC<CategoryTagProps> = ({ label, isActive = false, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
 
