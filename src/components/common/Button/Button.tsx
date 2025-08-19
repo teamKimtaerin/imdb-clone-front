@@ -3,6 +3,7 @@
 
 import React, { ButtonHTMLAttributes, ReactNode } from 'react';
 import { watchaTokens } from '@/styles/tokens';
+import { ButtonProps } from '@/types/button';
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
