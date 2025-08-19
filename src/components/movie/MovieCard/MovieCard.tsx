@@ -4,13 +4,15 @@
 import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
 
-interface MovieCardProps {
-  title?: string;
-  year?: string;
-  rating?: number;
-  imageUrl?: string | null;
+export interface MovieCardProps {
+  id: number;
+  title: string;
+  year: number;
+  rating: number;
+  imageUrl: string | null;
   hasDiscount?: boolean;
   discountPercent?: number;
+  genre?: string;
   onClick?: () => void;
 }
 
@@ -21,6 +23,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   imageUrl = null,
   hasDiscount = false,
   discountPercent = 30,
+  genre = 'adventure',
   onClick,
 }) => {
   const [isHovered, setIsHovered] = useState(false);

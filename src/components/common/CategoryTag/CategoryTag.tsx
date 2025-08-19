@@ -4,9 +4,9 @@
 import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
 
-interface CategoryTagProps {
+export interface CategoryTagProps {
   label: string;
-  isActive?: boolean;
+  isActive: boolean;
   onClick?: () => void;
 }
 
