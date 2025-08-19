@@ -1,19 +1,10 @@
 'use client';
 import { useState, useCallback } from 'react';
+import { Movie } from '@/types/movie';
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:4000/api';
 const ITEMS_PER_PAGE = 20;
-
-export interface Movie {
-  id: number;
-  title: string;
-  year: number;
-  rating: string;
-  genre: string;
-  imageUrl: string | null;
-  rank?: number;
-}
 
 export function useMovies() {
   const [movies, setMovies] = useState<Movie[]>([]);
