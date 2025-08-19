@@ -166,10 +166,10 @@ export default function WatchaStorybook() {
                 marginTop: watchaTokens.spacing.lg,
               }}
             >
-              <MovieCard {...props} title="쥬라기 월드" />
-              <MovieCard {...props} title="28일 후" year="2025" />
-              <MovieCard {...props} title="아바타 3" rating={4.5} />
-              <MovieCard {...props} title="듄: 파트3" />
+              <MovieCard {...props} title="쥬라기 월드" year={2010} />
+              <MovieCard {...props} title="28일 후" year={2025} />
+              <MovieCard {...props} title="아바타 3" year={2012} rating={4.5} />
+              <MovieCard {...props} title="듄: 파트3" year={2018} />
             </div>
           </div>
         );
@@ -284,12 +284,18 @@ export default function WatchaStorybook() {
                 }}
               >
                 {[
-                  { title: '쥬라기 월드: 새로운 시작', rating: 4.0, hasDiscount: true },
-                  { title: '28일 후', rating: 4.5, hasDiscount: true, discountPercent: 30 },
-                  { title: '아바타: 물의 길', rating: 4.2 },
-                  { title: '듄: 파트 2', rating: 4.8 },
-                  { title: '오펜하이머', rating: 4.6 },
-                  { title: '바비', rating: 3.9 },
+                  { title: '쥬라기 월드: 새로운 시작', year: 2012, rating: 4.0, hasDiscount: true },
+                  {
+                    title: '28일 후',
+                    year: 2012,
+                    ating: 4.5,
+                    hasDiscount: true,
+                    discountPercent: 30,
+                  },
+                  { title: '아바타: 물의 길', year: 2012, rating: 4.2 },
+                  { title: '듄: 파트 2', year: 2012, rating: 4.8 },
+                  { title: '오펜하이머', year: 2012, rating: 4.6 },
+                  { title: '바비', year: 2012, rating: 3.9 },
                 ].map((movie, idx) => (
                   <MovieCard key={idx} {...movie} />
                 ))}

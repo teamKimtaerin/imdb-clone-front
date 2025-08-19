@@ -19,7 +19,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     title: '쥬라기 월드',
-    year: '2024',
+    year: 2024,
     rating: 3.5,
   },
 };
@@ -27,6 +27,7 @@ export const Default: Story = {
 export const WithDiscount: Story = {
   args: {
     title: '28일 후',
+    year: 2018,
     hasDiscount: true,
     discountPercent: 30,
   },

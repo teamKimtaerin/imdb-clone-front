@@ -5,11 +5,11 @@ import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
 
 export interface MovieCardProps {
-  id: number;
+  id?: number;
   title: string;
   year: number;
-  rating: number;
-  imageUrl: string | null;
+  rating?: number;
+  imageUrl?: string | null;
   hasDiscount?: boolean;
   discountPercent?: number;
   genre?: string;
@@ -17,6 +17,7 @@ export interface MovieCardProps {
 }
 
 export const MovieCard: React.FC<MovieCardProps> = ({
+  id = 0,
   title = '쥬라기 월드: 새로운 시작',
   year = '2024',
   rating = 3.5,
