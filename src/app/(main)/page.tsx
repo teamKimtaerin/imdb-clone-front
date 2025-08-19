@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { MovieCard } from '@/components/movie/MovieCard';
@@ -22,8 +22,8 @@ const categoriesList = [
 export default function WatchaMainPage() {
   const { movies, loading, hasMore, loadMovies, loadNextPage } = useMovies();
 
-  const [activeCategories, setActiveCategories] = React.useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastMovieRef = useRef<HTMLDivElement | null>(null);
