@@ -3,130 +3,151 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { MovieCard } from '@/components/movie/MovieCard';
-import { Button } from '@/components/common/Button';
 import { SimpleFooter } from '@/components/common/Footer/Footer';
-import { MovieCardProps } from '@/components/movie/MovieCard/MovieCard';
-import { CategoryTagProps } from '@/components/common/CategoryTag/CategoryTag';
+
+// 타입 정의
+interface Movie {
+  id: number;
+  title: string;
+  year: number;
+  rating: string;
+  genre: string;
+  imageUrl: string | null;
+  rank?: number;
+}
 
 export default function WatchaMainPage() {
   // 상태 관리
-  const [movies, setMovies] = useState<MovieCardProps[]>([]);
-  const [filteredMovies, setFilteredMovies] = useState<MovieCardProps[]>([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [selectedCategories, setSelectedCategories] = useState<CategoryTagProps[]>([]);
-  const [sortBy, setSortBy] = useState('latest'); // latest, rating, title
-  const [viewMode, setViewMode] = useState('infinite'); // infinite or pagination
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
   // 무한 스크롤을 위한 ref
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastMovieRef = useRef<HTMLDivElement | null>(null);
 
-  // 임시 카테고리 데이터
-  const categories: CategoryTagProps[] = [
-    { label: '전체', isActive: false },
-    { label: '액션', isActive: false },
-    { label: '로맨스', isActive: false },
-    { label: '코미디', isActive: false },
-    { label: 'SF', isActive: false },
-    { label: '공포', isActive: false },
-    { label: '스릴러', isActive: false },
-    { label: '판타지', isActive: false },
-    { label: '다큐', isActive: false },
-    { label: '애니메이션', isActive: false },
-    { label: '드라마', isActive: false },
+  // 카테고리 데이터
+  const categories = [
+    '액션',
+    '로맨스',
+    '코미디',
+    'SF',
+    '공포',
+    '스릴러',
+    '판타지',
+    '다큐',
+    '애니메이션',
+    '드라마',
   ];
 
   // 페이지당 아이템 수
   const ITEMS_PER_PAGE = 20;
 
-  // 가상의 영화 데이터 생성
-  const generateMovies = (start: number, count: number) => {
-    return Array.from({ length: count }, (_, i) => ({
-      id: start + i,
-      title: `영화 ${start + i}`,
-      year: 2020 + Math.floor(Math.random() * 5),
-      rating: (3 + Math.random() * 2).toFixed(1),
-      genre: categories[Math.floor(Math.random() * (categories.length - 1)) + 1],
-      imageUrl: null,
-    }));
-  };
+  // 가상의 영화 데이터 생성 (실제로는 API 호출)
+  const generateMovies = useCallback((pageNum: number, categories: string[]) => {
+    const start = (pageNum - 1) * ITEMS_PER_PAGE + 1;
 
-  // 영화 데이터 로드
-  const loadMovies = useCallback(async (pageNum = 1, append = false) => {
-    setLoading(true);
-
-    // API 호출 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const newMovies = generateMovies((pageNum - 1) * ITEMS_PER_PAGE + 1, ITEMS_PER_PAGE);
-
-    if (append) {
-      // setMovies(prev => [...prev, ...newMovies]);
-    } else {
-      // setMovies(newMovies);
+    // 카테고리가 없으면 랭킹 순으로 반환
+    if (categories.length === 0) {
+      return Array.from({ length: ITEMS_PER_PAGE }, (_, i) => ({
+        id: start + i,
+        title: `인기 영화 ${start + i}`,
+        year: 2024,
+        rating: (4.5 - i * 0.05).toFixed(1),
+        genre: '전체',
+        imageUrl: null,
+        rank: start + i,
+      }));
     }
 
-    // 100개 이상이면 더 이상 로드하지 않음 (예시)
-    if (pageNum * ITEMS_PER_PAGE >= 100) {
-      setHasMore(false);
-    }
+    // 선택된 카테고리에 해당하는 영화 반환
+    const moviesPerCategory = Math.ceil(ITEMS_PER_PAGE / categories.length);
+    const result: Movie[] = [];
 
-    setLoading(false);
+    categories.forEach((category, categoryIndex) => {
+      for (let i = 0; i < moviesPerCategory && result.length < ITEMS_PER_PAGE; i++) {
+        result.push({
+          id: start + result.length,
+          title: `${category} 영화 ${start + result.length}`,
+          year: 2020 + Math.floor(Math.random() * 5),
+          rating: (3 + Math.random() * 2).toFixed(1),
+          genre: category,
+          imageUrl: null,
+        });
+      }
+    });
+
+    return result;
   }, []);
 
-  // 초기 데이터 로드
+  // 영화 데이터 로드 함수
+  const loadMovies = useCallback(
+    async (pageNum: number = 1, categories: string[] = [], append: boolean = false) => {
+      if (loading) return;
+
+      setLoading(true);
+
+      try {
+        // API 호출 시뮬레이션
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // 실제로는 이런 식으로 API 호출
+        // const response = await fetch(`/api/movies?page=${pageNum}&categories=${categories.join(',')}`);
+        // const data = await response.json();
+
+        const newMovies = generateMovies(pageNum, categories);
+
+        if (append) {
+          setMovies((prev) => [...prev, ...newMovies]);
+        } else {
+          setMovies(newMovies);
+          setPage(1);
+        }
+
+        // 100개 이상이면 더 이상 로드하지 않음
+        if (pageNum * ITEMS_PER_PAGE >= 100) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+      } catch (error) {
+        console.error('영화 로드 실패:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading, generateMovies],
+  );
+
+  // 초기 데이터 로드 (랭킹 순)
   useEffect(() => {
-    loadMovies(1);
+    loadMovies(1, []);
   }, []);
 
-  // 필터링 및 정렬 적용
+  // 카테고리 변경 시 데이터 다시 로드
   useEffect(() => {
-    let result = [...movies];
-
-    // 카테고리 필터링
-    // if (selectedCategories.length > 0) {
-    //   result = result.filter(movie => selectedCategories.includes(movie.genre));
-    // }
-
-    // 검색 필터링
-    if (searchQuery) {
-      result = result.filter((movie) =>
-        movie.title.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-    }
-
-    // 정렬
-    switch (sortBy) {
-      // case 'rating':
-      //   result.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-      //   break;
-      case 'title':
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'latest':
-      default:
-        result.sort((a, b) => b.year - a.year);
-        break;
-    }
-
-    setFilteredMovies(result);
-  }, [movies, selectedCategories, sortBy, searchQuery]);
+    setPage(1);
+    setHasMore(true);
+    loadMovies(1, activeCategories);
+  }, [activeCategories]);
 
   // 무한 스크롤 Observer 설정
   useEffect(() => {
-    if (viewMode !== 'infinite') return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          setPage((prev) => prev + 1);
-          loadMovies(page + 1, true);
+          const nextPage = page + 1;
+          setPage(nextPage);
+          loadMovies(nextPage, activeCategories, true);
         }
       },
-      { threshold: 0.1 },
+      {
+        threshold: 0.1,
+        rootMargin: '100px',
+      },
     );
 
     observerRef.current = observer;
@@ -136,7 +157,7 @@ export default function WatchaMainPage() {
         observerRef.current.disconnect();
       }
     };
-  }, [page, hasMore, loading, viewMode]);
+  }, [page, hasMore, loading, activeCategories, loadMovies]);
 
   // 마지막 아이템에 Observer 연결
   useEffect(() => {
@@ -149,41 +170,22 @@ export default function WatchaMainPage() {
         observerRef.current.unobserve(lastMovieRef.current);
       }
     };
-  }, [filteredMovies]);
+  }, [movies]);
 
-  // 카테고리 선택 핸들러
-  const handleCategoryClick = (category: CategoryTagProps) => {
-    if (category.isActive === false) {
-      setSelectedCategories([]);
-    } else {
-      setSelectedCategories((prev) => {
-        if (prev.includes(category)) {
-          return prev.filter((c) => c !== category);
-        } else {
-          return [...prev, category];
-        }
-      });
-    }
-    setPage(1);
+  // 카테고리 클릭 핸들러
+  const handleCategoryClick = (category: string) => {
+    setActiveCategories((prev) => {
+      if (prev.includes(category)) {
+        // 이미 활성화된 카테고리면 제거
+        return prev.filter((c) => c !== category);
+      } else {
+        // 비활성화된 카테고리면 추가
+        return [...prev, category];
+      }
+    });
   };
 
-  // 페이지네이션 계산
-  const totalPages = Math.ceil(100 / ITEMS_PER_PAGE); // 총 100개 아이템 가정
-  const currentPageMovies =
-    viewMode === 'pagination'
-      ? filteredMovies.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
-      : filteredMovies;
-
-  // 페이지 변경 핸들러
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    if (newPage > Math.ceil(movies.length / ITEMS_PER_PAGE)) {
-      loadMovies(newPage);
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const styles: { [key: string]: React.CSSProperties } = {
+  const styles: Record<string, React.CSSProperties> = {
     container: {
       minHeight: '100vh',
       background: '#000',
@@ -208,115 +210,84 @@ export default function WatchaMainPage() {
       gap: '8px',
       overflowX: 'auto',
       paddingBottom: '8px',
-      scrollbarWidth: 'thin',
-      scrollbarColor: '#333 transparent',
+      // scrollbarWidth와 scrollbarColor는 표준 CSS 속성이 아니므로 주석 처리하거나 as any 사용
+      // scrollbarWidth: 'thin',
+      // scrollbarColor: '#333 transparent',
     },
     main: {
       flex: 1,
-      padding: '24px',
-      maxWidth: '1400px',
+      padding: '40px 60px',
+      maxWidth: '1840px',
       margin: '0 auto',
       width: '100%',
     },
-    controls: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '24px',
-      flexWrap: 'wrap',
-      gap: '16px',
-    },
-    sortSection: {
-      display: 'flex',
-      gap: '16px',
-      alignItems: 'center',
-    },
-    viewModeSection: {
-      display: 'flex',
-      gap: '8px',
-      padding: '4px',
-      background: '#1c1c1c',
-      borderRadius: '8px',
+    sectionTitle: {
+      fontSize: '22px',
+      fontWeight: '700',
+      marginBottom: '20px',
+      color: '#fff',
     },
     movieGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-      gap: '16px',
-      marginBottom: '32px',
+      gridTemplateColumns: 'repeat(6, 1fr)',
+      gap: '20px 12px',
+      marginBottom: '40px',
+    },
+    moviePoster: {
+      position: 'relative',
+      paddingBottom: '145%',
+      background: 'linear-gradient(135deg, #1c1c1c, #2a2a2a)',
+      borderRadius: '4px',
+      overflow: 'hidden',
+      cursor: 'pointer',
+      transition: 'transform 0.2s ease',
+    },
+    posterImage: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+    },
+    rankBadge: {
+      position: 'absolute',
+      top: '8px',
+      left: '8px',
+      background: 'rgba(0, 0, 0, 0.7)',
+      color: '#fff',
+      padding: '4px 8px',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontWeight: 'bold',
+      backdropFilter: 'blur(4px)',
     },
     loadingContainer: {
       textAlign: 'center',
-      padding: '32px',
+      padding: '60px',
       color: '#999',
     },
-    paginationContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '8px',
-      padding: '32px 0',
+    loadingSpinner: {
+      display: 'inline-block',
+      width: '40px',
+      height: '40px',
+      border: '3px solid #333',
+      borderTop: '3px solid #ff0558',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
     },
-    pageButton: {
-      padding: '8px 12px',
-      background: 'transparent',
-      // border: '1px solid #333',
-      color: '#999',
-      borderRadius: '4px',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-    },
-    activePageButton: {
-      background: '#ff0558',
-      borderColor: '#ff0558',
-      color: '#fff',
-    },
-    comparisonBox: {
-      background: '#1c1c1c',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '24px',
-    },
-    comparisonTitle: {
-      fontSize: '18px',
-      fontWeight: 'bold',
-      marginBottom: '16px',
-      color: '#ff0558',
-    },
-    comparisonGrid: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '20px',
-    },
-    comparisonCard: {
-      background: '#0a0a0a',
-      padding: '16px',
-      borderRadius: '8px',
-    },
-    comparisonCardTitle: {
-      fontWeight: 'bold',
-      marginBottom: '12px',
-      color: '#fff',
-    },
-    prosList: {
-      listStyle: 'none',
-      padding: 0,
-      margin: '8px 0',
-    },
-    prosItem: {
-      padding: '4px 0',
-      color: '#4ade80',
-      fontSize: '14px',
-      display: 'flex',
-      alignItems: 'flex-start',
-    },
-    consItem: {
-      padding: '4px 0',
-      color: '#f87171',
-      fontSize: '14px',
-      display: 'flex',
-      alignItems: 'flex-start',
+    noContent: {
+      textAlign: 'center',
+      padding: '100px 20px',
+      color: '#666',
+      fontSize: '16px',
     },
   };
+
+  // 필터링된 영화 (검색 쿼리 적용)
+  const filteredMovies = searchQuery
+    ? movies.filter((movie) => movie.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : movies;
 
   return (
     <div style={styles.container}>
@@ -329,13 +300,9 @@ export default function WatchaMainPage() {
           <div style={styles.categoryContainer}>
             {categories.map((category) => (
               <CategoryTag
-                key={category.label}
-                label={category.label}
-                isActive={
-                  category.isActive === false
-                    ? selectedCategories.length === 0
-                    : selectedCategories.includes(category)
-                }
+                key={category}
+                label={category}
+                isActive={activeCategories.includes(category)}
                 onClick={() => handleCategoryClick(category)}
               />
             ))}
@@ -345,133 +312,54 @@ export default function WatchaMainPage() {
 
       {/* Main Content */}
       <main style={styles.main}>
-        {/* 무한 스크롤 vs 페이지네이션 비교 박스 */}
-        <div style={styles.comparisonBox}>
-          <h2 style={styles.comparisonTitle}>📊 무한 스크롤 vs 페이지네이션 비교</h2>
-          <div style={styles.comparisonGrid}>
-            <div style={styles.comparisonCard}>
-              <h3 style={styles.comparisonCardTitle}>♾️ 무한 스크롤</h3>
-              <div style={{ marginBottom: '12px' }}>
-                <strong style={{ color: '#4ade80', fontSize: '14px' }}>장점:</strong>
-                <ul style={styles.prosList}>
-                  <li style={styles.prosItem}>✓ 끊김 없는 사용자 경험</li>
-                  <li style={styles.prosItem}>✓ 모바일 친화적 (스크롤 제스처)</li>
-                  <li style={styles.prosItem}>✓ 콘텐츠 탐색에 적합</li>
-                  <li style={styles.prosItem}>✓ 사용자 참여도 증가</li>
-                </ul>
-              </div>
-              <div>
-                <strong style={{ color: '#f87171', fontSize: '14px' }}>단점:</strong>
-                <ul style={styles.prosList}>
-                  <li style={styles.consItem}>✗ 특정 콘텐츠 재접근 어려움</li>
-                  <li style={styles.consItem}>✗ 페이지 footer 접근 불편</li>
-                  <li style={styles.consItem}>✗ 메모리 사용량 증가</li>
-                  <li style={styles.consItem}>✗ SEO 최적화 어려움</li>
-                </ul>
-              </div>
-            </div>
+        {/* Section Title */}
+        <h2 style={styles.sectionTitle}>
+          {activeCategories.length === 0
+            ? '🔥 인기 영화 TOP 20'
+            : `🎬 ${activeCategories.join(', ')} 영화`}
+        </h2>
 
-            <div style={styles.comparisonCard}>
-              <h3 style={styles.comparisonCardTitle}>📄 페이지네이션</h3>
-              <div style={{ marginBottom: '12px' }}>
-                <strong style={{ color: '#4ade80', fontSize: '14px' }}>장점:</strong>
-                <ul style={styles.prosList}>
-                  <li style={styles.prosItem}>✓ 명확한 콘텐츠 구분</li>
-                  <li style={styles.prosItem}>✓ 특정 페이지 북마크 가능</li>
-                  <li style={styles.prosItem}>✓ 성능 예측 가능</li>
-                  <li style={styles.prosItem}>✓ SEO 친화적</li>
-                </ul>
-              </div>
-              <div>
-                <strong style={{ color: '#f87171', fontSize: '14px' }}>단점:</strong>
-                <ul style={styles.prosList}>
-                  <li style={styles.consItem}>✗ 추가 클릭 필요</li>
-                  <li style={styles.consItem}>✗ 페이지 로딩 대기</li>
-                  <li style={styles.consItem}>✗ 콘텐츠 흐름 끊김</li>
-                  <li style={styles.consItem}>✗ 모바일에서 불편</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: '20px',
-              padding: '16px',
-              background: '#ff0558',
-              borderRadius: '8px',
-              textAlign: 'center',
-            }}
-          >
-            <strong>🎬 왓챠 추천:</strong> 영화 탐색 서비스 특성상 <strong>무한 스크롤</strong>이
-            적합합니다!
-            <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.9 }}>
-              콘텐츠를 계속 탐색하며 새로운 작품을 발견하는 경험에 최적화
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div style={styles.controls}>
-          <div style={styles.sortSection}>
-            <span style={{ color: '#999', fontSize: '14px' }}>정렬:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{
-                background: '#1c1c1c',
-                color: '#fff',
-                border: '1px solid #333',
-                borderRadius: '4px',
-                padding: '8px 12px',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="latest">최신순</option>
-              <option value="rating">평점순</option>
-              <option value="title">제목순</option>
-            </select>
-          </div>
-
-          <div style={styles.viewModeSection}>
-            <Button
-              onClick={() => setViewMode('infinite')}
-              style={{
-                padding: '8px 16px',
-                background: viewMode === 'infinite' ? '#ff0558' : 'transparent',
-                color: viewMode === 'infinite' ? '#fff' : '#999',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              무한 스크롤
-            </Button>
-            <Button
-              onClick={() => setViewMode('pagination')}
-              style={{
-                padding: '8px 16px',
-                background: viewMode === 'pagination' ? '#ff0558' : 'transparent',
-                color: viewMode === 'pagination' ? '#fff' : '#999',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              페이지네이션
-            </Button>
-          </div>
-        </div>
-
-        {/* Movie Grid */}
+        {/* Movie Grid - 왓챠 스타일 (포스터만 표시) */}
         <div style={styles.movieGrid}>
-          {currentPageMovies.map((movie, index) => {
-            const isLastItem = index === currentPageMovies.length - 1;
+          {filteredMovies.map((movie, index) => {
+            const isLastItem = index === filteredMovies.length - 1;
             return (
-              <div key={movie.id} ref={isLastItem && viewMode === 'infinite' ? lastMovieRef : null}>
-                <MovieCard {...movie} />
+              <div
+                key={movie.id}
+                ref={isLastItem ? lastMovieRef : null}
+                style={styles.moviePoster}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.03)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                {/* 랭킹 뱃지 (인기 영화일 때만) */}
+                {movie.rank && activeCategories.length === 0 && (
+                  <div style={styles.rankBadge}>#{movie.rank}</div>
+                )}
+
+                {/* 포스터 이미지 (실제로는 이미지 URL 사용) */}
+                {movie.imageUrl ? (
+                  <img src={movie.imageUrl} alt={movie.title} style={styles.posterImage} />
+                ) : (
+                  <div
+                    style={{
+                      ...styles.posterImage,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px',
+                      color: '#666',
+                      textAlign: 'center',
+                      padding: '20px',
+                      background: 'linear-gradient(135deg, #1c1c1c, #2a2a2a)',
+                    }}
+                  >
+                    {movie.title}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -480,75 +368,59 @@ export default function WatchaMainPage() {
         {/* Loading Indicator */}
         {loading && (
           <div style={styles.loadingContainer}>
-            <div>로딩 중...</div>
+            <div style={styles.loadingSpinner}></div>
+            <div style={{ marginTop: '20px' }}>영화를 불러오는 중...</div>
           </div>
         )}
 
         {/* No More Content */}
-        {!hasMore && viewMode === 'infinite' && (
-          <div style={styles.loadingContainer}>
-            <div>모든 콘텐츠를 불러왔습니다</div>
+        {!hasMore && filteredMovies.length > 0 && (
+          <div style={styles.noContent}>
+            <div>모든 영화를 불러왔습니다</div>
           </div>
         )}
 
-        {/* Pagination Controls */}
-        {viewMode === 'pagination' && (
-          <div style={styles.paginationContainer}>
-            <Button
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-              style={{
-                ...styles.pageButton,
-                opacity: page === 1 ? 0.5 : 1,
-                cursor: page === 1 ? 'not-allowed' : 'pointer',
-              }}
-            >
-              이전
-            </Button>
-
-            {[...Array(Math.min(5, totalPages))].map((_, i) => {
-              let pageNum;
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (page <= 3) {
-                pageNum = i + 1;
-              } else if (page >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = page - 2 + i;
-              }
-
-              return (
-                <Button
-                  key={pageNum}
-                  onClick={() => handlePageChange(pageNum)}
-                  style={{
-                    ...styles.pageButton,
-                    ...(page === pageNum ? styles.activePageButton : {}),
-                  }}
-                >
-                  {pageNum}
-                </Button>
-              );
-            })}
-
-            <Button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-              style={{
-                ...styles.pageButton,
-                opacity: page === totalPages ? 0.5 : 1,
-                cursor: page === totalPages ? 'not-allowed' : 'pointer',
-              }}
-            >
-              다음
-            </Button>
+        {/* No Results */}
+        {filteredMovies.length === 0 && !loading && (
+          <div style={styles.noContent}>
+            <div>표시할 영화가 없습니다</div>
           </div>
         )}
       </main>
 
       {/* Footer */}
       <SimpleFooter />
+
+      {/* 스타일 애니메이션 */}
+      <style jsx>{`
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: #333;
+          border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      `}</style>
     </div>
   );
 }
