@@ -1,35 +1,107 @@
 .star-rating {
   display: flex;
+  gap: 1px;
+}
+
+.star-rating.sm {
+  gap: 0px;
 }
 
 .star {
   position: relative;
   display: inline-block;
-  width: 24px; /* adjust as needed */
-  height: 24px;
   cursor: pointer;
 }
 
-/* 빈 별 */
-.star.empty::before {
-  content: '☆'; /* outline star */
-  font-size: 24px;
-  color: lightgray;
+/* 크기별 스타일 */
+.star.sm {
+  width: 16px;
+  height: 16px;
 }
 
-/* 반 별 */
-.star.half::before {
-  content: '★';
+.star.md {
+  width: 24px;
+  height: 24px;
+}
+
+.star.lg {
+  width: 32px;
+  height: 32px;
+}
+
+/* 기본 (인터랙티브) 모드 스타일 */
+.star.empty::before {
+  content: '☆';
+  color: lightgray;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.star.sm::before {
+  font-size: 16px;
+}
+
+.star.md::before {
   font-size: 24px;
+}
+
+.star.lg::before {
+  font-size: 32px;
+}
+
+.star.half::before {
+  content: '☆';
+  color: lightgray;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.star.half::after {
+  content: '★';
   color: #ff2e63;
   position: absolute;
-  width: 12px;
+  left: 0;
+  top: 0;
+  width: 43%;
   overflow: hidden;
 }
 
-/* 전체 별 */
+.star.sm.half::after {
+  font-size: 16px;
+}
+
+.star.md.half::after {
+  font-size: 24px;
+}
+
+.star.lg.half::after {
+  font-size: 32px;
+}
+
 .star.full::before {
   content: '★';
-  font-size: 24px;
   color: #ff2e63;
+}
+
+/* 읽기 전용 모드 스타일 (노란색) */
+.star.readonly.empty::before {
+  content: '☆';
+  color: #64748b;
+}
+
+.star.readonly.half::before {
+  content: '☆';
+  color: #64748b;
+}
+
+.star.readonly.half::after {
+  content: '★';
+  color: #fbbf24;
+}
+
+.star.readonly.full::before {
+  content: '★';
+  color: #fbbf24;
 }

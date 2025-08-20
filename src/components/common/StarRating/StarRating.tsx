@@ -8,7 +8,12 @@ interface StarRatingProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const StarRating: React.FC<StarRatingProps> = ({ value, onChange, readonly = false }) => {
+export const StarRating: React.FC<StarRatingProps> = ({
+  value,
+  onChange,
+  readonly = false,
+  size = 'md',
+}) => {
   const [hoverRating, setHoverRating] = useState(0);
 
   const handleMouseMove = (index: number, e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
@@ -40,14 +45,14 @@ export const StarRating: React.FC<StarRatingProps> = ({ value, onChange, readonl
   // 읽기 전용 별 렌더링
   const renderReadonlyStar = (index: number) => {
     const fullNumber = index + 1;
-    let starClass = '';
+    let starClass = `star ${size}`;
 
     if (value >= fullNumber) {
-      starClass = 'star full';
+      starClass += ' full readonly';
     } else if (value >= fullNumber - 0.5) {
-      starClass = 'star half';
+      starClass += ' half readonly';
     } else {
-      starClass = 'star empty';
+      starClass += ' empty readonly';
     }
 
     return <span key={index} className={starClass} />;
@@ -56,14 +61,14 @@ export const StarRating: React.FC<StarRatingProps> = ({ value, onChange, readonl
   // 인터랙티브 별 렌더링
   const renderInteractiveStar = (index: number) => {
     const fullNumber = index + 1;
-    let starClass = '';
+    let starClass = `star ${size}`;
 
     if (displayedRating >= fullNumber) {
-      starClass = 'star full';
+      starClass += ' full';
     } else if (displayedRating >= fullNumber - 0.5) {
-      starClass = 'star half';
+      starClass += ' half';
     } else {
-      starClass = 'star empty';
+      starClass += ' empty';
     }
 
     return (
@@ -79,12 +84,10 @@ export const StarRating: React.FC<StarRatingProps> = ({ value, onChange, readonl
   };
 
   return (
-    <div className="star-rating">
+    <div className={`star-rating ${size}`}>
       {readonly
-        ? // 읽기 전용일 때
-          Array.from({ length: 5 }, (_, index) => renderReadonlyStar(index))
-        : // 입력 모드일 때
-          Array.from({ length: 5 }, (_, index) => renderInteractiveStar(index))}
+        ? Array.from({ length: 5 }, (_, index) => renderReadonlyStar(index))
+        : Array.from({ length: 5 }, (_, index) => renderInteractiveStar(index))}
     </div>
   );
 };

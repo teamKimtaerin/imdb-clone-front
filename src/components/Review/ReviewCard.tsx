@@ -27,22 +27,8 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
           {/* 닉네임과 별점 */}
           <div className="flex items-center gap-2 mb-1">
             <span className="font-medium text-white">{user.nickname}</span>
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, index) => (
-                <span
-                  key={index}
-                  className={`text-sm ${
-                    index < Math.floor(rating)
-                      ? 'text-yellow-400'
-                      : index < rating
-                        ? 'text-yellow-400'
-                        : 'text-gray-600'
-                  }`}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
+            {/* StarRating 컴포넌트 사용 - 작은 크기, 읽기 전용 */}
+            <StarRating value={rating} readonly={true} size="sm" />
           </div>
 
           {/* 리뷰 제목 (있는 경우) */}
