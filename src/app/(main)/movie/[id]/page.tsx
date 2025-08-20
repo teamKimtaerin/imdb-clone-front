@@ -30,7 +30,7 @@ const MovieDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-black">
         <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
         <div className="flex items-center justify-center h-screen text-white">
           <div className="text-center">
@@ -44,7 +44,7 @@ const MovieDetailPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-black">
         <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
         <div className="flex items-center justify-center h-screen text-red-400">
           <div className="text-center">
@@ -58,7 +58,7 @@ const MovieDetailPage: React.FC = () => {
 
   if (!movie) {
     return (
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-black">
         <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
         <div className="flex items-center justify-center h-screen text-gray-400">
           <div className="text-center">
@@ -71,7 +71,7 @@ const MovieDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-black">
       <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
 
       {/* 영화 상세 정보 */}

@@ -98,7 +98,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({ movieId, currentUserId }
   }
 
   return (
-    <div className="bg-gray-900 text-white">
+    <div className="bg-black text-white">
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-8">
@@ -159,8 +159,8 @@ export const ReviewList: React.FC<ReviewListProps> = ({ movieId, currentUserId }
           </div>
         )}
 
-        {/* 더보기 버튼 */}
-        {!loading && hasMore && (
+        {/* 더보기 버튼 - 데이터가 충분히 많고 더 불러올 데이터가 있을 때만 표시 */}
+        {!loading && hasMore && reviews.length >= 10 && (
           <div className="text-center pt-8">
             <button
               onClick={loadMore}

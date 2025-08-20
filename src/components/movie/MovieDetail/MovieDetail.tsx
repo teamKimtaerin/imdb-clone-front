@@ -1,4 +1,3 @@
-// src/components/movie/MovieDetail/MovieDetail.tsx
 'use client';
 
 import React from 'react';
@@ -36,8 +35,8 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
               <div className="w-full h-full bg-gradient-to-br from-purple-900 via-pink-900 to-red-900" />
             )}
             {/* 그라데이션 오버레이 */}
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
           </div>
         </div>
 
@@ -212,7 +211,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
       {/* 왓챠피디어 사용자 평점 섹션 */}
       <div className="container mx-auto px-6 py-12 max-w-6xl border-t border-gray-800">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold">왓챠피디어 사용자 평점</h2>
+          <h2 className="text-2xl font-bold">왓챠피디아 사용자 평</h2>
           <span className="text-gray-400">{movie.review_count.toLocaleString()}+</span>
         </div>
 
