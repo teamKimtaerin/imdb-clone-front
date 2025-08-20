@@ -166,10 +166,62 @@ export default function WatchaStorybook() {
                 marginTop: watchaTokens.spacing.lg,
               }}
             >
-              <MovieCard {...props} title="쥬라기 월드" year={2010} />
-              <MovieCard {...props} title="28일 후" year={2025} />
-              <MovieCard {...props} title="아바타 3" year={2012} rating={4.5} />
-              <MovieCard {...props} title="듄: 파트3" year={2018} />
+              <MovieCard
+                _id="1"
+                title="쥬라기 월드"
+                categories={['액션', '어드벤처']}
+                running_time={120}
+                release_date="2010-01-01"
+                rating_total={props.rating}
+                review_count={1234}
+                audience={500000}
+                description="쥬라기 월드 설명"
+                director="콜린 트레보로우"
+                poster_url=""
+                age_rating="12"
+              />
+              <MovieCard
+                _id="2"
+                title="28일 후"
+                categories={['공포', '스릴러']}
+                running_time={113}
+                release_date="2010-01-01"
+                rating_total={props.rating}
+                review_count={987}
+                audience={300000}
+                description="28일 후 설명"
+                director="대니 보일"
+                poster_url=""
+                age_rating="18"
+              />
+              <MovieCard
+                _id="3"
+                title="아바타 3"
+                categories={['SF', '액션']}
+                running_time={180}
+                release_date="2010-01-01"
+                rating_total={4.5}
+                review_count={2500}
+                audience={1000000}
+                description="아바타 3 설명"
+                director="제임스 카메론"
+                poster_url=""
+                age_rating="12"
+              />
+              <MovieCard
+                _id="4"
+                title="듄: 파트3"
+                categories={['SF', '드라마']}
+                running_time={155}
+                release_date="2010-01-01"
+                rating_total={props.rating}
+                review_count={1800}
+                audience={800000}
+                description="듄: 파트3 설명"
+                director="드니 빌뇌브"
+                poster_url=""
+                age_rating="15"
+              />
             </div>
           </div>
         );
@@ -288,7 +340,7 @@ export default function WatchaStorybook() {
                   {
                     title: '28일 후',
                     year: 2012,
-                    ating: 4.5,
+                    rating: 4.5,
                     hasDiscount: true,
                     discountPercent: 30,
                   },
@@ -297,7 +349,21 @@ export default function WatchaStorybook() {
                   { title: '오펜하이머', year: 2012, rating: 4.6 },
                   { title: '바비', year: 2012, rating: 3.9 },
                 ].map((movie, idx) => (
-                  <MovieCard key={idx} {...movie} />
+                  <MovieCard
+                    key={idx}
+                    _id={idx.toString()}
+                    categories={['액션']}
+                    running_time={120}
+                    release_date={`${movie.year || 2012}-01-01`}
+                    rating_total={movie.rating || 4.0}
+                    review_count={1000}
+                    audience={500000}
+                    description={'영화 설명'}
+                    director={'감독'}
+                    poster_url={''}
+                    age_rating={'12'}
+                    {...movie}
+                  />
                 ))}
               </div>
             </div>
