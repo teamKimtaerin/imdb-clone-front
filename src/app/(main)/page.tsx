@@ -33,11 +33,6 @@ export default function WatchaMainPage() {
     loadMovies(1, activeCategories);
   }, [loadMovies, activeCategories]);
 
-  // 카테고리 변경
-  useEffect(() => {
-    loadMovies(1, activeCategories);
-  }, [loadMovies, activeCategories]);
-
   // 무한 스크롤 Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
