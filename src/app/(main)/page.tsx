@@ -31,12 +31,12 @@ export default function WatchaMainPage() {
   // 초기 로드
   useEffect(() => {
     loadMovies(1, activeCategories);
-  }, []);
+  }, [loadMovies, activeCategories]);
 
   // 카테고리 변경
   useEffect(() => {
     loadMovies(1, activeCategories);
-  }, [activeCategories]);
+  }, [loadMovies, activeCategories]);
 
   // 무한 스크롤 Observer
   useEffect(() => {
@@ -56,12 +56,15 @@ export default function WatchaMainPage() {
   }, [movies, hasMore, loading, activeCategories, loadNextPage]);
 
   useEffect(() => {
-    if (lastMovieRef.current && observerRef.current) {
-      observerRef.current.observe(lastMovieRef.current);
+    const currentMovieRef = lastMovieRef.current;
+    const currentObserver = observerRef.current;
+
+    if (currentMovieRef && currentObserver) {
+      currentObserver.observe(currentMovieRef);
     }
     return () => {
-      if (lastMovieRef.current && observerRef.current) {
-        observerRef.current.unobserve(lastMovieRef.current);
+      if (currentMovieRef && currentObserver) {
+        currentObserver.unobserve(currentMovieRef);
       }
     };
   }, [movies]);

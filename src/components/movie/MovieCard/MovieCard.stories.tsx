@@ -18,17 +18,17 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
+    _id: '1',
     title: '쥬라기 월드',
-    year: 2024,
-    rating: 3.5,
-  },
-};
-
-export const WithDiscount: Story = {
-  args: {
-    title: '28일 후',
-    year: 2018,
-    hasDiscount: true,
-    discountPercent: 30,
+    categories: ['액션', '어드벤처'],
+    running_time: 124,
+    release_date: '2024-06-15',
+    rating_total: 3.5,
+    review_count: 2456,
+    audience: 850000,
+    description: '공룡들이 세상을 지배하는 판타지 어드벤처',
+    director: '콜린 트레보로우',
+    poster_url: '',
+    age_rating: '12',
   },
 };

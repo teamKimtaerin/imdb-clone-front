@@ -1,7 +1,7 @@
 // src/components/common/Button/Button.tsx
 'use client';
 
-import React, { ButtonHTMLAttributes, ReactNode } from 'react';
+import React from 'react';
 import { watchaTokens } from '@/styles/tokens';
 import { ButtonProps } from '@/types/button';
 

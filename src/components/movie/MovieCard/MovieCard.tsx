@@ -8,21 +8,21 @@ import { MovieCardProps } from '@/types/movieCardProps';
 export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
   (
     {
-      _id,
+      _id: _movieId,
       title = '제목 없음',
-      categories = [],
-      running_time = 0,
+      categories: _categories = [],
+      running_time: _runningTime = 0,
       release_date,
       rating_total = 0,
       review_count = 0,
-      audience = 0,
-      trailer_url,
-      description = '',
+      audience: _audience = 0,
+      trailer_url: _trailerUrl,
+      description: _description = '',
       director = '',
       poster_url,
       age_rating = 'ALL',
-      created_at,
-      __v,
+      created_at: _createdAt,
+      __v: _version,
       rank,
       onClick,
     },
@@ -210,3 +210,5 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
     );
   },
 );
+
+MovieCard.displayName = 'MovieCard';
