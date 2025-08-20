@@ -4,6 +4,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import useMovie from '@/hooks/useMovie';
 import MovieDetail from '@/components/movie/MovieDetail/MovieDetail';
+import { ReviewList } from '@/components/Review/ReviewList';
 import { NavigationBar } from '@/components/common/NavigationBar/NavigationBar';
 
 const MovieDetailPage: React.FC = () => {
@@ -11,6 +12,11 @@ const MovieDetailPage: React.FC = () => {
   const id = params.id as string;
 
   const { movie, isLoading, error } = useMovie(id);
+
+  // TODO: 실제 사용자 인증 훅으로 교체
+  // const { user } = useAuth();
+  // const currentUserId = user?.id;
+  const currentUserId = 'current-user-id'; // 임시 사용자 ID
 
   const handleMenuClick = (menu: string) => {
     console.log(`메뉴 클릭: ${menu}`);
@@ -67,7 +73,14 @@ const MovieDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
+
+      {/* 영화 상세 정보 */}
       <MovieDetail movie={movie} />
+
+      {/* 리뷰 섹션 */}
+      <div className="border-t border-gray-800">
+        <ReviewList movieId={id} currentUserId={currentUserId} />
+      </div>
     </div>
   );
 };
