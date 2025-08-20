@@ -1,49 +1,56 @@
-import { ReactNode } from 'react';
-import { ButtonContent, IconProps } from './ButtonContent';
+'use client';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'text' | 'danger';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  rounded?: boolean;
-  fullWidth?: boolean;
-  loading?: boolean;
-  startIcon?: IconProps | ReactNode;
-  endIcon?: IconProps | ReactNode;
-}
+import { useState } from 'react';
+import { ButtonProps } from '@/types/button';
+import { ButtonContent } from './ButtonContent';
+import { getButtonStyles } from './buttonStyles';
 
-export const Button = ({
+export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
-  rounded = false,
   fullWidth = false,
   loading = false,
+  disabled = false,
   startIcon,
   endIcon,
-  className = '',
+  rounded = false,
   children,
-  disabled,
+  style,
   ...props
-}: ButtonProps) => {
-  const classes = [
-    'btn',
-    `btn-${variant}`,
-    `btn-${size}`,
-    rounded ? 'btn-rounded' : 'btn-pill',
-    fullWidth ? 'btn-full' : '',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+
+  const buttonStyle = getButtonStyles(
+    variant,
+    size,
+    { isHovered, isPressed },
+    {
+      rounded,
+      fullWidth,
+      disabled,
+      loading,
+      hasChildren: !!children,
+      style,
+    },
+  );
 
   return (
-    <button className={classes} disabled={disabled || loading} {...props}>
-      {loading || startIcon || endIcon ? (
-        <ButtonContent loading={loading} startIcon={startIcon} endIcon={endIcon}>
-          {children}
-        </ButtonContent>
-      ) : (
-        children
-      )}
+    <button
+      style={buttonStyle}
+      disabled={disabled || loading}
+      onMouseEnter={() => !disabled && !loading && setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsPressed(false);
+      }}
+      onMouseDown={() => !disabled && !loading && setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      {...props}
+    >
+      <ButtonContent loading={loading} startIcon={startIcon} endIcon={endIcon} size={size}>
+        {children}
+      </ButtonContent>
     </button>
   );
 };
