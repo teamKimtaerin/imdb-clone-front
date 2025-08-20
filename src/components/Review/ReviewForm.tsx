@@ -39,7 +39,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title && rating > 0 && content) {
+    if (rating > 0 && content) {
       onSubmit({ title, rating, content, is_spoiler: isSpoiler });
     } else {
       alert('제목, 평점, 내용을 모두 입력해주세요!');
@@ -47,28 +47,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
   };
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 mb-6">
+    <div className="bg-black-800 border border-black rounded-xl p-6 mb-6">
       <h2 className="text-2xl font-bold text-white mb-6">
         {isEditing ? '리뷰 수정' : '리뷰 작성'}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 제목 입력 */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-            제목
-          </label>
-          <input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-colors"
-            placeholder="리뷰 제목을 입력하세요"
-            required
-          />
-        </div>
-
         {/* 평점 선택 */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-3">평점</label>
@@ -87,7 +71,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
               type="checkbox"
               checked={isSpoiler}
               onChange={(e) => setIsSpoiler(e.target.checked)}
-              className="w-4 h-4 text-pink-600 bg-gray-700 border-gray-600 rounded focus:ring-pink-500 focus:ring-2"
+              className="w-4 h-4 text-pink-600 bg-black-700 border-gray-600 rounded focus:ring-pink-500 focus:ring-2"
             />
             <span className="text-sm text-gray-300">
               ⚠️ 이 리뷰에는 스포일러가 포함되어 있습니다
@@ -110,7 +94,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
             rows={6}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-colors resize-none"
+            className="w-full px-4 py-3 bg-black-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-colors resize-none"
             placeholder="이 작품에 대한 생각을 자유롭게 표현해보세요.&#10;&#10;• 작품의 어떤 부분이 좋았나요?&#10;• 아쉬웠던 점이 있다면?&#10;• 다른 사람들에게 추천하고 싶나요?"
             required
           />
@@ -124,7 +108,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors"
+            className="px-6 py-3 text-sm font-medium text-gray-300 bg-black-700 hover:bg-black-600 rounded-full transition-colors"
           >
             취소
           </button>

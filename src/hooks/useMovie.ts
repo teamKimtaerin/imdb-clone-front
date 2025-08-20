@@ -10,6 +10,8 @@ interface UseMovieReturn {
   error: string | null;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+
 const useMovie = (id: string): UseMovieReturn => {
   const [movie, setMovie] = useState<Movie | null>(null);
   const [isLoading, setLoading] = useState(true);
@@ -20,7 +22,7 @@ const useMovie = (id: string): UseMovieReturn => {
     setLoading(true);
 
     axios
-      .get(`http://localhost:4000/api/movies/${id}`)
+      .get(`${API_BASE_URL}/api/movies/${id}`)
       .then((res) => setMovie(res.data))
       .catch(() => setError('데이터를 가져오는 데 실패했습니다.'))
       .finally(() => setLoading(false));

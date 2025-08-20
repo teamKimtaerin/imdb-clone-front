@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from '@/components/providers/Providers';
+import { NavigationBar } from '@/components/common/NavigationBar';
+import { SimpleFooter } from '@/components/common/Footer/Footer';
+
 import './globals.css';
 
 const geistSans = Geist({
@@ -15,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'IMDB Clone',
-  description: 'Movie database application',
+  description: 'Movie and actor search application',
 };
 
 export default function RootLayout({
