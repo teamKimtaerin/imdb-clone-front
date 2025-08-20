@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const validatedData = verifyEmailSchema.parse(body);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/verify-email`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/verify-code`,
       {
         method: 'POST',
         headers: {
@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.error('Verify code error:', error);
     return NextResponse.json(
       { success: false, message: '서버 오류가 발생했습니다' },
       { status: 500 },

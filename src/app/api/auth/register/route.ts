@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { registerSchema } from '@/lib/auth/validation';
 import { signToken } from '@/lib/auth/jwt';
-import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,14 +27,7 @@ export async function POST(request: NextRequest) {
         email: data.data.user.email,
       });
 
-      cookies().set('auth-token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24, // 24 hours
-      });
-
-      return NextResponse.json(
+      const nextResponse = NextResponse.json(
         {
           ...data,
           data: {
@@ -45,6 +37,15 @@ export async function POST(request: NextRequest) {
         },
         { status: response.status },
       );
+
+      nextResponse.cookies.set('auth-token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24, // 24 hours
+      });
+
+      return nextResponse;
     }
 
     return NextResponse.json(data, { status: response.status });
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.error('Register error:', error);
     return NextResponse.json(
       { success: false, message: '서버 오류가 발생했습니다' },
       { status: 500 },

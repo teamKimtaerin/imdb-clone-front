@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth/jwt';
 import { cookies } from 'next/headers';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const token = cookies().get('auth-token')?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
 
     if (!token) {
       return NextResponse.json({ success: false, message: '인증이 필요합니다' }, { status: 401 });
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
+    console.error('Profile error:', error);
     return NextResponse.json(
       { success: false, message: '서버 오류가 발생했습니다' },
       { status: 500 },
