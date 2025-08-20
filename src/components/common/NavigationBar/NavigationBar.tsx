@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
 import { NavigationBarProps } from '@/types/navigationBar';
+import { useRouter } from 'next/navigation';
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
   activeMenu = '홈',
@@ -107,6 +108,8 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
     }
   };
 
+  const router = useRouter();
+
   return (
     <nav style={navStyle}>
       <div style={containerStyle}>
@@ -158,6 +161,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           onMouseLeave={(e) => {
             (e.target as HTMLElement).style.background = watchaTokens.colors.primary;
           }}
+          onClick={() => router.push('/login')}
         >
           회원가입/로그인
         </button>
