@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, forwardRef } from 'react';
+import Image from 'next/image';
 import { watchaTokens } from '@/styles/tokens';
 import { MovieCardProps } from '@/types/movieCardProps';
 
@@ -34,23 +35,17 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
     const cardStyle: React.CSSProperties = {
       position: 'relative',
       cursor: 'pointer',
-      transition: 'transform 0.3s ease',
+      transition: 'transform 0.15s ease-in-out',
       transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+      willChange: 'transform',
     };
-
-    // 포스터 이미지 사용
-    const displayImageUrl = poster_url;
 
     const imageContainerStyle: React.CSSProperties = {
       position: 'relative',
       paddingBottom: '145%',
-      background: displayImageUrl
-        ? `url(${displayImageUrl})`
-        : `linear-gradient(135deg, ${watchaTokens.colors.surface}, ${watchaTokens.colors.border})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
       borderRadius: watchaTokens.borderRadius.lg,
       overflow: 'hidden',
+      background: watchaTokens.colors.surface,
     };
 
     const blurOverlayStyle: React.CSSProperties = {
@@ -60,7 +55,8 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       right: 0,
       bottom: 0,
       backdropFilter: is_adult_content ? 'blur(8px)' : 'none',
-      zIndex: 1,
+      backgroundColor: is_adult_content ? 'rgba(0, 0, 0, 0.1)' : 'transparent',
+      zIndex: 4,
     };
 
     const overlayStyle: React.CSSProperties = {
@@ -69,13 +65,14 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       left: 0,
       right: 0,
       bottom: 0,
-      background: isHovered ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+      background: isHovered ? 'rgba(0, 0, 0, 0.4)' : 'transparent',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
       padding: watchaTokens.spacing.md,
-      transition: 'background 0.3s ease',
-      zIndex: 2,
+      transition: 'background 0.15s ease-in-out',
+      willChange: 'background',
+      zIndex: 5,
     };
 
     const adultBadgeStyle: React.CSSProperties = {
@@ -88,7 +85,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       borderRadius: watchaTokens.borderRadius.sm,
       fontSize: watchaTokens.typography.fontSize.xs,
       fontWeight: watchaTokens.typography.fontWeight.bold,
-      zIndex: 3,
+      zIndex: 6,
       backdropFilter: 'blur(4px)',
     };
 
@@ -122,9 +119,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       gap: '2px',
     };
 
-    // 평균 별점 계산: rating_total / review_count
     const averageRating = review_count > 0 ? rating_total / review_count : 0;
-    // 0.5 단위로 반올림
     const calculatedRating = Math.round(averageRating * 2) / 2;
 
     const renderStars = (ratingValue: number) => {
@@ -134,13 +129,10 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
 
       for (let i = 0; i < 5; i++) {
         if (i < fullStars) {
-          // 완전한 별
           stars.push('★');
         } else if (i === fullStars && hasHalfStar) {
-          // 반 별 (유니코드 반별 문자 사용)
           stars.push('⭐');
         } else {
-          // 빈 별
           stars.push('☆');
         }
       }
@@ -148,7 +140,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
     };
 
     const hoverInfoStyle: React.CSSProperties = {
-      background: 'rgba(0, 0, 0, 0.8)',
+      background: 'rgba(0, 0, 0, 0.6)',
       padding: watchaTokens.spacing.sm,
       borderRadius: watchaTokens.borderRadius.md,
       backdropFilter: 'blur(10px)',
@@ -163,27 +155,26 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
         onClick={onClick}
       >
         <div style={imageContainerStyle}>
-          {is_adult_content && <div style={blurOverlayStyle}></div>}
-          {rank && (
-            <div
+          {/* Next.js 최적화된 이미지 */}
+          {poster_url && (
+            <Image
+              src={poster_url}
+              alt={title}
+              fill
               style={{
-                position: 'absolute',
-                top: '8px',
-                left: '8px',
-                background: 'rgba(0,0,0,0.7)',
-                color: '#fff',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                backdropFilter: 'blur(4px)',
-                zIndex: 2,
+                objectFit: 'cover',
               }}
-            >
-              #{rank}
-            </div>
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              priority={rank ? rank <= 10 : false}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+            />
           )}
-          {age_rating === '19+' && <div style={adultBadgeStyle}>19+</div>}
+
+          {/* 19+ 컨텐츠 블러 오버레이 */}
+          {is_adult_content && <div style={blurOverlayStyle}></div>}
+
+          {/* 호버 오버레이 */}
           <div style={overlayStyle}>
             {isHovered && (
               <div style={hoverInfoStyle}>
@@ -218,7 +209,32 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
               </div>
             )}
           </div>
+
+          {/* 랭킹 배지 */}
+          {rank && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '8px',
+                left: '8px',
+                background: 'rgba(0,0,0,0.7)',
+                color: '#fff',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                backdropFilter: 'blur(4px)',
+                zIndex: 6,
+              }}
+            >
+              #{rank}
+            </div>
+          )}
+
+          {/* 19+ 배지 */}
+          {age_rating === '19+' && <div style={adultBadgeStyle}>19+</div>}
         </div>
+
         <div style={titleStyle}>{title}</div>
         <div style={infoStyle}>
           <span style={yearStyle}>{new Date(release_date).getFullYear()}</span>
