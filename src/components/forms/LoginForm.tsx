@@ -38,11 +38,11 @@ const LoginForm = () => {
   };
 
   const handleGithubLogin = () => {
-    signIn('github');
+    signIn('github', { callbackUrl: '/' });
   };
 
   const handleGoogleLogin = () => {
-    signIn('google');
+    signIn('google', { callbackUrl: '/' });
   };
 
   return (

@@ -95,7 +95,6 @@ export default function SettingsPage() {
   const handleDeleteAccount = () => {
     if (confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
       logout();
-      router.push('/');
     }
   };
 

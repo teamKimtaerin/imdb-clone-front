@@ -41,6 +41,13 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // 로그인 성공 후 메인 페이지로 리다이렉트
+      if (url.startsWith(baseUrl)) return url;
+      // Allows relative callback URLs
+      else if (url.startsWith('/')) return `${baseUrl}${url}`;
+      return baseUrl;
+    },
   },
 };
 

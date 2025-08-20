@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FormData {
   email: string;
@@ -15,6 +16,7 @@ interface FormData {
 
 const RegisterForm = () => {
   const router = useRouter();
+  const { checkAuth, login } = useAuth();
   const [step, setStep] = useState<'email' | 'verify' | 'details'>('email');
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -63,28 +65,19 @@ const RegisterForm = () => {
       return;
     }
 
-    setLoading(true);
     setError('');
 
-    try {
-      const response = await fetch('/api/auth/send-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email }),
-      });
+    // 즉시 인증 코드 입력 화면으로 전환
+    setStep('verify');
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setStep('verify');
-      } else {
-        setError(data.message || '인증 이메일 전송에 실패했습니다.');
-      }
-    } catch {
-      setError('네트워크 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
+    // 백그라운드에서 이메일 전송
+    fetch('/api/auth/send-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: formData.email }),
+    }).catch((error) => {
+      console.error('Failed to send verification email:', error);
+    });
   };
 
   const handleVerifyCode = async (e: React.FormEvent) => {
@@ -160,7 +153,14 @@ const RegisterForm = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        router.push('/');
+        // 회원가입 성공 후 자동 로그인
+        try {
+          await login(formData.email, formData.password);
+        } catch (loginError) {
+          // 로그인 실패 시에도 checkAuth로 시도
+          await checkAuth();
+          router.push('/');
+        }
       } else {
         setError(data.message || '회원가입에 실패했습니다.');
       }
@@ -172,11 +172,11 @@ const RegisterForm = () => {
   };
 
   const handleGithubLogin = () => {
-    signIn('github');
+    signIn('github', { callbackUrl: '/' });
   };
 
   const handleGoogleLogin = () => {
-    signIn('google');
+    signIn('google', { callbackUrl: '/' });
   };
 
   const renderStepIndicator = () => (
@@ -235,10 +235,10 @@ const RegisterForm = () => {
 
                 <button
                   type="submit"
-                  disabled={loading || !formData.email}
+                  disabled={!formData.email}
                   className="w-full py-4 bg-[#FF0558] hover:bg-[#E6004C] disabled:bg-[#2A2B2E] disabled:text-gray-600 text-white font-medium rounded-lg transition-colors"
                 >
-                  {loading ? '전송 중...' : '이메일로 계속하기'}
+                  이메일로 계속하기
                 </button>
               </form>
 
@@ -333,11 +333,17 @@ const RegisterForm = () => {
                 이메일을 받지 못하셨나요?{' '}
                 <button
                   type="button"
-                  onClick={() =>
-                    handleSendVerification({ preventDefault: () => {} } as React.FormEvent)
-                  }
+                  onClick={() => {
+                    // 백그라운드에서 재전송
+                    fetch('/api/auth/send-verification', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: formData.email }),
+                    }).catch((error) => {
+                      console.error('Failed to resend verification email:', error);
+                    });
+                  }}
                   className="text-[#FF0558] hover:text-[#E6004C] font-medium transition-colors"
-                  disabled={loading}
                 >
                   재전송
                 </button>
