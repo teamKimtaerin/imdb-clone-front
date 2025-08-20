@@ -24,6 +24,9 @@ interface UseReviewsReturn {
   /** 더 많은 리뷰가 있는지 여부 */
   hasMore: boolean;
 
+  /** 초기화 완료 여부 */
+  isInitialized: boolean;
+
   /** 수동으로 더 많은 리뷰 로드 */
   loadMore: () => void;
 
@@ -74,6 +77,9 @@ export function useReviews({ movieId, enabled = true }: UseReviewsOptions): UseR
     threshold: 200, // 페이지 하단 200px 지점에서 로드
   });
 
+  // 초기화 상태 계산 - 첫 API 호출이 완료된 상태
+  const isInitialized = !loading || reviews.length > 0;
+
   /**
    * 새 리뷰 작성
    */
@@ -82,6 +88,7 @@ export function useReviews({ movieId, enabled = true }: UseReviewsOptions): UseR
       setMutationLoading(true);
       try {
         const newReview = await ReviewApiService.createReview(movieId, reviewData);
+        // 새 리뷰 작성 후 목록 새로고침
         refresh();
         return newReview;
       } finally {
@@ -99,6 +106,7 @@ export function useReviews({ movieId, enabled = true }: UseReviewsOptions): UseR
       setMutationLoading(true);
       try {
         const updatedReview = await ReviewApiService.updateReview(reviewId, reviewData);
+        // 리뷰 수정 후 목록 새로고침
         refresh();
         return updatedReview;
       } finally {
@@ -116,6 +124,7 @@ export function useReviews({ movieId, enabled = true }: UseReviewsOptions): UseR
       setMutationLoading(true);
       try {
         await ReviewApiService.deleteReview(reviewId);
+        // 리뷰 삭제 후 목록 새로고침
         refresh();
       } finally {
         setMutationLoading(false);
@@ -129,6 +138,7 @@ export function useReviews({ movieId, enabled = true }: UseReviewsOptions): UseR
     loading,
     error,
     hasMore,
+    isInitialized,
     loadMore,
     refresh,
     createReview,

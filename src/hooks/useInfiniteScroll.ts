@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseInfiniteScrollOptions<T> {
   /**
@@ -45,13 +45,27 @@ export function useInfiniteScroll<T>({
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // useRef로 최신 상태값들을 추적 (스크롤 이벤트에서 클로저 문제 해결)
+  const loadingRef = useRef(loading);
+  const hasMoreRef = useRef(hasMore);
+  const currentPageRef = useRef(currentPage);
+
+  // ref 값들을 최신으로 유지
+  useEffect(() => {
+    loadingRef.current = loading;
+    hasMoreRef.current = hasMore;
+    currentPageRef.current = currentPage;
+  }, [loading, hasMore, currentPage]);
 
   /**
-   * 데이터 로드 함수
+   * 데이터 로드 함수 - 의존성 배열에서 loading 제거하여 무한 리렌더링 방지
    */
   const loadData = useCallback(
     async (page: number, isRefresh = false) => {
-      if (loading) return;
+      // 이미 로딩 중이거나, 더 이상 데이터가 없으면 중단
+      if (loadingRef.current || (!isRefresh && !hasMoreRef.current)) return;
 
       try {
         setLoading(true);
@@ -66,23 +80,29 @@ export function useInfiniteScroll<T>({
 
         setHasMore(result.hasMore);
         setCurrentPage(page);
+
+        if (!isInitialized) {
+          setIsInitialized(true);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '데이터 로드 중 오류가 발생했습니다.');
+        // 에러 발생시 hasMore를 false로 설정하여 추가 로딩 방지
+        setHasMore(false);
       } finally {
         setLoading(false);
       }
     },
-    [fetchData, loading],
+    [fetchData, isInitialized], // loading 제거
   );
 
   /**
    * 더 많은 데이터 로드
    */
   const loadMore = useCallback(() => {
-    if (hasMore && !loading) {
-      loadData(currentPage + 1);
+    if (hasMoreRef.current && !loadingRef.current) {
+      loadData(currentPageRef.current + 1);
     }
-  }, [hasMore, loading, currentPage, loadData]);
+  }, [loadData]);
 
   /**
    * 데이터 새로고침
@@ -91,14 +111,15 @@ export function useInfiniteScroll<T>({
     setData([]);
     setCurrentPage(1);
     setHasMore(true);
+    setIsInitialized(false);
     loadData(1, true);
   }, [loadData]);
 
   /**
-   * 스크롤 이벤트 핸들러
+   * 스크롤 이벤트 핸들러 - 디바운싱 적용
    */
   const handleScroll = useCallback(() => {
-    if (!hasMore || loading) return;
+    if (!hasMoreRef.current || loadingRef.current) return;
 
     const scrollHeight = document.documentElement.scrollHeight;
     const scrollTop = document.documentElement.scrollTop;
@@ -108,31 +129,47 @@ export function useInfiniteScroll<T>({
     if (scrollTop + clientHeight >= scrollHeight - threshold) {
       loadMore();
     }
-  }, [hasMore, loading, threshold, loadMore]);
+  }, [threshold, loadMore]);
+
+  // 디바운싱을 위한 타이머 ref
+  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
-   * 초기 데이터 로드 및 스크롤 이벤트 리스너 등록
+   * 디바운싱된 스크롤 핸들러
+   */
+  const debouncedHandleScroll = useCallback(() => {
+    if (scrollTimerRef.current) {
+      clearTimeout(scrollTimerRef.current);
+    }
+    scrollTimerRef.current = setTimeout(handleScroll, 100);
+  }, [handleScroll]);
+
+  /**
+   * 초기 데이터 로드
    */
   useEffect(() => {
-    if (enabled && data.length === 0) {
+    if (enabled && !isInitialized && data.length === 0 && !loading) {
       loadData(1, true);
     }
-  }, [enabled, data.length, loadData]);
+  }, [enabled, isInitialized, data.length, loading, loadData]);
 
   /**
    * 스크롤 이벤트 리스너 등록/해제
    */
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !isInitialized) return;
 
-    // 스크롤 이벤트 리스너 등록
-    window.addEventListener('scroll', handleScroll);
+    // 스크롤 이벤트 리스너 등록 (디바운싱 적용)
+    window.addEventListener('scroll', debouncedHandleScroll, { passive: true });
 
-    // 클린업 함수: 컴포넌트 언마운트 시 이벤트 리스너 제거
+    // 클린업 함수: 컴포넌트 언마운트 시 이벤트 리스너 제거 및 타이머 정리
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', debouncedHandleScroll);
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
     };
-  }, [enabled, handleScroll]);
+  }, [enabled, isInitialized, debouncedHandleScroll]);
 
   return {
     data,
