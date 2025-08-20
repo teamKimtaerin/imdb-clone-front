@@ -100,8 +100,8 @@ export default function WatchaMainPage() {
             background: '#0a0a0a',
             display: 'flex',
             gap: '8px',
-            overflowX: 'auto',
-            paddingBottom: '8px',
+            flexWrap: 'wrap',
+            paddingBottom: '16px',
           }}
         >
           {categoriesList.map((category) => (
@@ -185,7 +185,6 @@ export default function WatchaMainPage() {
           </div>
         )}
       </main>
-
       <SimpleFooter />
     </div>
   );

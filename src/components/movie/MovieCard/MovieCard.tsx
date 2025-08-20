@@ -183,7 +183,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
               #{rank}
             </div>
           )}
-          {age_rating === '18' && <div style={adultBadgeStyle}>19+</div>}
+          {age_rating === '19+' && <div style={adultBadgeStyle}>19+</div>}
           <div style={overlayStyle}>
             {isHovered && (
               <div style={hoverInfoStyle}>
