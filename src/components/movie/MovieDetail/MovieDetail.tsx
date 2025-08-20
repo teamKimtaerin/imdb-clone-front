@@ -4,7 +4,6 @@ import React from 'react';
 import { CategoryTag } from '@/components/common/CategoryTag/CategoryTag';
 import { Button } from '@/components/common/Button/Button';
 import { Movie } from '@/types/index';
-import { ReviewList } from '../../Review/ReviewList';
 
 interface MovieDetailProps {
   movie: Movie;
@@ -23,6 +22,31 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie, reviewRating = 0, revi
   const displayRating =
     reviewCount > 0 ? reviewRating : calculateAverageRating(movie.rating_total, movie.review_count);
   const displayReviewCount = reviewCount > 0 ? reviewCount : movie.review_count;
+
+  // Director 타입 정의 (로컬)
+  interface DirectorType {
+    name: string;
+    profile_image?: string | null;
+  }
+
+  // director가 객체인지 확인하는 타입 가드 함수
+  const isDirectorObject = (director: unknown): director is DirectorType => {
+    return typeof director === 'object' && director !== null && 'name' in director;
+  };
+
+  // 안전하게 director 정보 가져오기
+  const getDirectorInfo = (): DirectorType => {
+    if (isDirectorObject(movie.director)) {
+      return movie.director;
+    }
+    // 만약 string이라면 기본 객체 반환
+    return {
+      name: typeof movie.director === 'string' ? movie.director : '감독 정보 없음',
+      profile_image: null,
+    };
+  };
+
+  const director = getDirectorInfo();
 
   return (
     <div className="text-white">
@@ -150,11 +174,19 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie, reviewRating = 0, revi
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 text-gray-300">감독</h3>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center">
-                  <span className="text-gray-400">👤</span>
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+                  {director.profile_image ? (
+                    <img
+                      src={director.profile_image}
+                      alt={`${director.name} 프로필`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-400">👤</span>
+                  )}
                 </div>
                 <div>
-                  <div className="font-medium">{movie.director}</div>
+                  <div className="font-medium">{director.name}</div>
                   <div className="text-gray-400 text-sm">감독</div>
                 </div>
               </div>
@@ -164,17 +196,33 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie, reviewRating = 0, revi
             <div>
               <h3 className="text-lg font-semibold mb-4 text-gray-300">출연</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {movie.cast.slice(0, 6).map((actor, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-gray-400">👤</span>
+                {movie.cast.slice(0, 6).map((actor, index) => {
+                  // actor의 profile_image가 유효한 문자열인지 확인
+                  const hasValidProfileImage =
+                    'profile_image' in actor &&
+                    typeof actor.profile_image === 'string' &&
+                    actor.profile_image.trim() !== '';
+
+                  return (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {hasValidProfileImage ? (
+                          <img
+                            src={actor.profile_image as string}
+                            alt={`${actor.name} 프로필`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-400">👤</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-medium">{actor.name}</div>
+                        <div className="text-gray-400 text-sm">출연</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium">{actor.name}</div>
-                      <div className="text-gray-400 text-sm">출연</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {movie.cast.length > 6 && (
                 <button className="mt-4 text-pink-400 hover:text-pink-300 text-sm">더보기</button>

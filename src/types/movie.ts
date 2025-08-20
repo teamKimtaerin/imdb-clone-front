@@ -1,6 +1,12 @@
 export interface Cast {
   name: string;
   role: string;
+  profile_image?: string | null;
+}
+
+export interface Director {
+  name: string;
+  profile_image?: string | null;
 }
 
 export interface Movie {
@@ -15,12 +21,25 @@ export interface Movie {
   trailer_url?: string;
   description: string;
   cast: Cast[];
-  director: string;
+  director: Director; // string 타입 제거 - DB에서 항상 객체로 저장됨
   poster_url?: string;
-  age_rating: string; // 시청 등급: ALL, 12, 15, 18 등
+  age_rating: string;
+  is_adult_content?: boolean;
   created_at?: string;
   __v?: number;
   rank?: number;
+
+  // 리뷰 관련 추가 필드들 (백엔드에서 계산해서 전달)
+  user_review_count?: number;
+  user_rating_total?: number;
+  user_avg_rating?: number;
+  display_review_count?: number;
+  display_avg_rating?: number;
+
+  // 원본 크롤링 데이터 (참고용)
+  original_review_count?: number;
+  original_rating_total?: number;
+  original_avg_rating?: number;
 }
 
 // 기존 코드 호환성을 위한 레거시 인터페이스

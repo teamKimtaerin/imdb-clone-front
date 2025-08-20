@@ -149,7 +149,7 @@ export default function WatchaMainPage() {
                 audience={movie.audience}
                 trailer_url={movie.trailer_url}
                 description={movie.description}
-                director={movie.director}
+                director={typeof movie.director === 'object' ? movie.director.name : movie.director}
                 poster_url={movie.poster_url}
                 age_rating={movie.age_rating}
                 created_at={movie.created_at}
