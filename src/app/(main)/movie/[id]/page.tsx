@@ -6,6 +6,7 @@ import useMovie from '@/hooks/useMovie';
 import MovieDetail from '@/components/movie/MovieDetail/MovieDetail';
 import { NavigationBar } from '@/components/common/NavigationBar/NavigationBar';
 
+
 const MovieDetailPage: React.FC = () => {
   const params = useParams();
   const id = params.id as string;
