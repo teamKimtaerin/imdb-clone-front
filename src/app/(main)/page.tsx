@@ -1,83 +1,185 @@
-import Image from 'next/image';
+'use client';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavigationBar } from '@/components/common/NavigationBar';
+import { CategoryTag } from '@/components/common/CategoryTag';
+import { MovieCard } from '@/components/movie/MovieCard';
+import { SimpleFooter } from '@/components/common/Footer/Footer';
+import { useMovies } from '@/hooks/movie/useMovies';
 
-export default function Home() {
+const categoriesList = [
+  '액션',
+  '로맨스',
+  '코미디',
+  'SF',
+  '공포',
+  '스릴러',
+  '판타지',
+  '다큐',
+  '애니메이션',
+  '드라마',
+];
+
+export default function WatchaMainPage() {
+  const { movies, loading, hasMore, loadMovies, loadNextPage } = useMovies();
+
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastMovieRef = useRef<HTMLDivElement | null>(null);
+
+  // 초기 로드
+  useEffect(() => {
+    loadMovies(1, activeCategories);
+  }, [loadMovies, activeCategories]);
+
+  // 무한 스크롤 Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          loadNextPage(activeCategories);
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' },
+    );
+    observerRef.current = observer;
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [movies, hasMore, loading, activeCategories, loadNextPage]);
+
+  useEffect(() => {
+    const currentMovieRef = lastMovieRef.current;
+    const currentObserver = observerRef.current;
+
+    if (currentMovieRef && currentObserver) {
+      currentObserver.observe(currentMovieRef);
+    }
+    return () => {
+      if (currentMovieRef && currentObserver) {
+        currentObserver.unobserve(currentMovieRef);
+      }
+    };
+  }, [movies]);
+
+  // 카테고리 클릭
+  const handleCategoryClick = (category: string) => {
+    setActiveCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
+    );
+  };
+
+  // 검색 필터
+  const filteredMovies = searchQuery
+    ? movies.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : movies;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{' '}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#000',
+        color: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: '#000' }}>
+        <NavigationBar onSearch={setSearchQuery} />
+        <div
+          style={{
+            padding: '16px 24px',
+            borderBottom: '1px solid #2a2a2a',
+            background: '#0a0a0a',
+            display: 'flex',
+            gap: '8px',
+            overflowX: 'auto',
+            paddingBottom: '8px',
+          }}
+        >
+          {categoriesList.map((category) => (
+            <CategoryTag
+              key={category}
+              label={category}
+              isActive={activeCategories.includes(category)}
+              onClick={() => handleCategoryClick(category)}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          ))}
         </div>
+      </header>
+
+      <main
+        style={{
+          flex: 1,
+          padding: '40px 60px',
+          maxWidth: '1840px',
+          margin: '0 auto',
+          width: '100%',
+        }}
+      >
+        <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '20px' }}>
+          {activeCategories.length === 0
+            ? '🔥 KTR: 큐레이션'
+            : `🎬 ${activeCategories.join(', ')} 영화`}
+        </h2>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, 1fr)',
+            gap: '20px 12px',
+            marginBottom: '40px',
+          }}
+        >
+          {filteredMovies.map((movie, index) => {
+            const isLastItem = index === filteredMovies.length - 1;
+            return (
+              <MovieCard
+                key={movie._id}
+                ref={isLastItem ? lastMovieRef : null}
+                _id={movie._id}
+                title={movie.title}
+                categories={movie.categories}
+                running_time={movie.running_time}
+                release_date={movie.release_date}
+                rating_total={movie.rating_total}
+                review_count={movie.review_count}
+                audience={movie.audience}
+                trailer_url={movie.trailer_url}
+                description={movie.description}
+                director={movie.director}
+                poster_url={movie.poster_url}
+                age_rating={movie.age_rating}
+                created_at={movie.created_at}
+                __v={movie.__v}
+                rank={movie.rank && activeCategories.length === 0 ? movie.rank : undefined}
+              />
+            );
+          })}
+        </div>
+
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
+            영화를 불러오는 중...
+          </div>
+        )}
+        {!hasMore && filteredMovies.length > 0 && (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            모든 영화를 불러왔습니다
+          </div>
+        )}
+        {filteredMovies.length === 0 && !loading && (
+          <div
+            style={{ textAlign: 'center', padding: '100px 20px', color: '#666', fontSize: '16px' }}
+          >
+            표시할 영화가 없습니다
+          </div>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/window.svg" alt="Window icon" width={16} height={16} />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <SimpleFooter />
     </div>
   );
 }

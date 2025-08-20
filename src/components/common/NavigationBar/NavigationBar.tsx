@@ -3,12 +3,7 @@
 
 import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
-
-interface NavigationBarProps {
-  activeMenu?: string;
-  onSearch?: (value: string) => void;
-  onMenuClick?: (menu: string) => void;
-}
+import { NavigationBarProps } from '@/types/navigationBar';
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
   activeMenu = '홈',
