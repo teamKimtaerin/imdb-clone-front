@@ -1,4 +1,3 @@
-// src/components/movie/MovieDetail/MovieDetail.tsx
 'use client';
 
 import React from 'react';
@@ -8,16 +7,46 @@ import { Movie } from '@/types/index';
 
 interface MovieDetailProps {
   movie: Movie;
+  reviewRating?: number; // 리뷰에서 계산된 평균 rating
+  reviewCount?: number; // 리뷰 수
 }
 
-// 평균 별점을 계산하는 헬퍼 함수
-const calculateAverageRating = (total: number, count: number): number => {
-  if (count === 0) return 0;
-  return Number((total / count).toFixed(1));
-};
+const MovieDetail: React.FC<MovieDetailProps> = ({ movie, reviewRating = 0, reviewCount = 0 }) => {
+  // 기존 영화 평균 평점 (DB에서 가져온 것)과 실제 리뷰 평균 평점 중 선택
+  // 실제 리뷰가 있으면 리뷰 평균을 사용, 없으면 기존 데이터 사용
+  const calculateAverageRating = (total: number, count: number): number => {
+    if (count === 0) return 0;
+    return Number((total / count).toFixed(1));
+  };
 
-const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
-  const averageRating = calculateAverageRating(movie.rating_total, movie.review_count);
+  const displayRating =
+    reviewCount > 0 ? reviewRating : calculateAverageRating(movie.rating_total, movie.review_count);
+  const displayReviewCount = reviewCount > 0 ? reviewCount : movie.review_count;
+
+  // Director 타입 정의 (로컬)
+  interface DirectorType {
+    name: string;
+    profile_image?: string | null;
+  }
+
+  // director가 객체인지 확인하는 타입 가드 함수
+  const isDirectorObject = (director: unknown): director is DirectorType => {
+    return typeof director === 'object' && director !== null && 'name' in director;
+  };
+
+  // 안전하게 director 정보 가져오기
+  const getDirectorInfo = (): DirectorType => {
+    if (isDirectorObject(movie.director)) {
+      return movie.director;
+    }
+    // 만약 string이라면 기본 객체 반환
+    return {
+      name: typeof movie.director === 'string' ? movie.director : '감독 정보 없음',
+      profile_image: null,
+    };
+  };
+
+  const director = getDirectorInfo();
 
   return (
     <div className="text-white">
@@ -36,8 +65,8 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
               <div className="w-full h-full bg-gradient-to-br from-purple-900 via-pink-900 to-red-900" />
             )}
             {/* 그라데이션 오버레이 */}
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
           </div>
         </div>
 
@@ -80,7 +109,8 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
               <div className="flex items-center gap-8 mb-6">
                 <div className="flex items-center gap-2">
                   <span className="text-yellow-400 text-2xl">★</span>
-                  <span className="text-2xl font-bold">{averageRating}</span>
+                  <span className="text-2xl font-bold">{displayRating}</span>
+                  <span className="text-gray-400 text-sm">({displayReviewCount}명 평가)</span>
                 </div>
                 <div className="text-gray-300">관객 {movie.audience.toLocaleString()}명</div>
               </div>
@@ -97,7 +127,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
                   variant="secondary"
                   className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-full"
                 >
-                  ★ 평가하기
+                  ☆ 평가하기
                 </Button>
               </div>
 
@@ -123,7 +153,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
                 </button>
                 <button className="flex flex-col items-center gap-1 text-gray-300 hover:text-white transition-colors">
                   <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-                    📤
+                    🔤
                   </div>
                   <span>공유</span>
                 </button>
@@ -144,11 +174,19 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 text-gray-300">감독</h3>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center">
-                  <span className="text-gray-400">👤</span>
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+                  {director.profile_image ? (
+                    <img
+                      src={director.profile_image}
+                      alt={`${director.name} 프로필`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-400">👤</span>
+                  )}
                 </div>
                 <div>
-                  <div className="font-medium">{movie.director}</div>
+                  <div className="font-medium">{director.name}</div>
                   <div className="text-gray-400 text-sm">감독</div>
                 </div>
               </div>
@@ -158,17 +196,33 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4 text-gray-300">출연</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {movie.cast.slice(0, 6).map((actor, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-gray-400">👤</span>
+                {movie.cast.slice(0, 6).map((actor, index) => {
+                  // actor의 profile_image가 유효한 문자열인지 확인
+                  const hasValidProfileImage =
+                    'profile_image' in actor &&
+                    typeof actor.profile_image === 'string' &&
+                    actor.profile_image.trim() !== '';
+
+                  return (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {hasValidProfileImage ? (
+                          <img
+                            src={actor.profile_image as string}
+                            alt={`${actor.name} 프로필`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-400">👤</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-medium">{actor.name}</div>
+                        <div className="text-gray-400 text-sm">출연</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium">{actor.name}</div>
-                      <div className="text-gray-400 text-sm">출연</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {movie.cast.length > 6 && (
                 <button className="mt-4 text-pink-400 hover:text-pink-300 text-sm">더보기</button>
@@ -209,19 +263,19 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
         </div>
       </div>
 
-      {/* 왓챠피디어 사용자 평점 섹션 */}
+      {/* 왓챠피디아 사용자 평점 섹션 */}
       <div className="container mx-auto px-6 py-12 max-w-6xl border-t border-gray-800">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold">왓챠피디어 사용자 평점</h2>
-          <span className="text-gray-400">{movie.review_count.toLocaleString()}+</span>
+          <h2 className="text-2xl font-bold">왓챠피디아 사용자 평</h2>
+          <span className="text-gray-400">{displayReviewCount.toLocaleString()}+</span>
         </div>
 
         <div className="flex items-center gap-4 mb-8">
           <div className="flex items-center gap-2">
             <span className="text-yellow-400 text-4xl">★</span>
-            <span className="text-4xl font-bold">{averageRating}</span>
+            <span className="text-4xl font-bold">{displayRating}</span>
           </div>
-          <div className="text-gray-400">{movie.review_count}명이 평가</div>
+          <div className="text-gray-400">{displayReviewCount}명이 평가</div>
         </div>
 
         <div className="flex flex-wrap gap-4">
@@ -235,7 +289,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
             variant="secondary"
             className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-full"
           >
-            ★ 별점 평가하기
+            ☆ 별점 평가하기
           </Button>
           <button className="text-pink-400 hover:text-pink-300 px-4 py-2">← 보고싶어요</button>
           <button className="text-pink-400 hover:text-pink-300 px-4 py-2">⭐ 평가하기</button>
