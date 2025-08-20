@@ -12,7 +12,6 @@ const MovieDetailPage: React.FC = () => {
 
   const { movie, isLoading, error } = useMovie(id);
 
-  // 현재 페이지가 '홈' 메뉴에 해당된다고 가정하고 activeMenu prop 전달
   const handleMenuClick = (menu: string) => {
     console.log(`메뉴 클릭: ${menu}`);
     // 실제 페이지 이동 로직은 useRouter 등을 사용
@@ -25,42 +24,51 @@ const MovieDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <>
+      <div className="min-h-screen bg-gray-900">
         <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
-        <div className="flex items-center justify-center h-screen text-gray-700">로딩 중...</div>
-      </>
+        <div className="flex items-center justify-center h-screen text-white">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+            <div>로딩 중...</div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
+      <div className="min-h-screen bg-gray-900">
         <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
-        <div className="flex items-center justify-center h-screen text-red-500">
-          영화를 불러오는 중 오류가 발생했습니다.
+        <div className="flex items-center justify-center h-screen text-red-400">
+          <div className="text-center">
+            <div className="text-6xl mb-4">⚠️</div>
+            <div className="text-xl">영화를 불러오는 중 오류가 발생했습니다.</div>
+          </div>
         </div>
-      </>
+      </div>
     );
   }
 
   if (!movie) {
     return (
-      <>
+      <div className="min-h-screen bg-gray-900">
         <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
-        <div className="flex items-center justify-center h-screen text-gray-700">
-          영화를 찾을 수 없습니다.
+        <div className="flex items-center justify-center h-screen text-gray-400">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🎬</div>
+            <div className="text-xl">영화를 찾을 수 없습니다.</div>
+          </div>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-900">
       <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
-      <main className="container mx-auto mt-4 p-4">
-        <MovieDetail movie={movie} />
-      </main>
-    </>
+      <MovieDetail movie={movie} />
+    </div>
   );
 };
 
