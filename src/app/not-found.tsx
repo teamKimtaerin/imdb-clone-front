@@ -17,7 +17,9 @@ const NotFound = () => {
           해당 페이지를 찾을 수 없습니다.
         </p>
         <Button
-          className="hidden md:inline-flex text-teal-500 px-8 py-2 rounded-full dark:bg-black text-sm uppercase border border-teal-800 hover:text-teal-800 dark:hover:text-teal-200 hover:border-teal-700 duration-300"
+          variant="secondary"
+          size="md"
+          className="hidden md:inline-flex"
           onClick={() => router.back()}
         >
           돌아가기
