@@ -7,17 +7,32 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#ff0558',
+          DEFAULT: '#ff0558', // Watcha Pink
           dark: '#e6004f',
+          light: '#ff4081',
+        },
+        secondary: {
+          DEFAULT: '#141517', // Watcha Dark
+          light: '#2a2d32',
         },
         surface: {
           DEFAULT: '#f8f9fa',
           hover: '#e9ecef',
+          dark: '#1a1d23',
         },
         danger: {
           DEFAULT: '#ef4444',
           dark: '#dc2626',
           hover: '#dc2626',
+        },
+        watcha: {
+          pink: '#ff0558',
+          'pink-dark': '#e6004f',
+          'pink-light': '#ff4081',
+          dark: '#141517',
+          'dark-light': '#2a2d32',
+          gray: '#6b7280',
+          'gray-light': '#9ca3af',
         },
       },
       fontFamily: {
@@ -39,6 +54,7 @@ const config: Config = {
       boxShadow: {
         primary: '0 4px 12px rgba(255, 5, 88, 0.3)',
         danger: '0 4px 12px rgba(239, 68, 68, 0.3)',
+        watcha: '0 4px 20px rgba(255, 5, 88, 0.25)',
       },
       animation: {
         'spin-smooth': 'spin 1s linear infinite',
@@ -54,7 +70,7 @@ const config: Config = {
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: theme('fontFamily.sans'),
-          fontWeight: '500',
+          fontWeight: '600', // Watcha는 조금 더 볼드
           cursor: 'pointer',
           transition: 'all 0.2s ease',
           userSelect: 'none',
@@ -76,43 +92,47 @@ const config: Config = {
           },
         },
 
-        // Button Variants
+        // Button Variants - Watcha Style
         '.btn-primary': {
-          backgroundColor: theme('colors.primary.DEFAULT'),
+          backgroundColor: theme('colors.watcha.pink'),
           color: 'white',
           border: 'none',
 
           '&:not(:disabled):hover': {
-            backgroundColor: theme('colors.primary.dark'),
-            boxShadow: theme('boxShadow.primary'),
+            backgroundColor: theme('colors.watcha.pink-dark'),
+            boxShadow: theme('boxShadow.watcha'),
           },
 
           '&:not(:disabled):active': {
-            backgroundColor: theme('colors.primary.dark'),
+            backgroundColor: theme('colors.watcha.pink-dark'),
           },
         },
 
         '.btn-secondary': {
           backgroundColor: 'transparent',
-          color: theme('colors.primary.DEFAULT'),
-          border: `2px solid ${theme('colors.primary.DEFAULT')}`,
+          color: theme('colors.watcha.pink'),
+          border: `2px solid ${theme('colors.watcha.pink')}`,
 
           '&:not(:disabled):hover': {
-            backgroundColor: theme('colors.surface.hover'),
+            backgroundColor: theme('colors.watcha.pink'),
+            color: 'white',
           },
 
           '&:not(:disabled):active': {
-            backgroundColor: theme('colors.surface.DEFAULT'),
+            backgroundColor: theme('colors.watcha.pink-dark'),
+            color: 'white',
           },
         },
 
         '.btn-ghost': {
           backgroundColor: 'transparent',
-          color: theme('colors.gray.900'),
+          color: theme('colors.watcha.dark'),
           border: `1px solid ${theme('colors.gray.300')}`,
 
           '&:not(:disabled):hover': {
             backgroundColor: theme('colors.surface.hover'),
+            borderColor: theme('colors.watcha.pink'),
+            color: theme('colors.watcha.pink'),
           },
 
           '&:not(:disabled):active': {
@@ -122,12 +142,12 @@ const config: Config = {
 
         '.btn-text': {
           backgroundColor: 'transparent',
-          color: theme('colors.gray.600'),
+          color: theme('colors.watcha.gray'),
           border: 'none',
 
           '&:not(:disabled):hover': {
             backgroundColor: theme('colors.surface.hover'),
-            color: theme('colors.gray.900'),
+            color: theme('colors.watcha.pink'),
           },
 
           '&:not(:disabled):active': {

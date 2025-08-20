@@ -1,35 +1,139 @@
 .star-rating {
   display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.star-rating.sm {
+  gap: 0px;
 }
 
 .star {
   position: relative;
-  display: inline-block;
-  width: 24px; /* adjust as needed */
-  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
-/* 빈 별 */
-.star.empty::before {
-  content: '☆'; /* outline star */
-  font-size: 24px;
-  color: lightgray;
+/* 크기별 스타일 */
+.star.sm {
+  width: 16px;
+  height: 16px;
 }
 
-/* 반 별 */
-.star.half::before {
-  content: '★';
+.star.md {
+  width: 24px;
+  height: 24px;
+}
+
+.star.lg {
+  width: 32px;
+  height: 32px;
+}
+
+/* 기본 (인터랙티브) 모드 스타일 */
+.star.empty::before {
+  content: '☆';
+  color: lightgray;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.star.sm::before {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.star.md::before {
   font-size: 24px;
+  line-height: 1;
+}
+
+.star.lg::before {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.star.half::before {
+  content: '☆';
+  color: lightgray;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.star.half::after {
+  content: '★';
   color: #ff2e63;
   position: absolute;
-  width: 12px;
-  overflow: hidden;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  clip-path: inset(0 50% 0 0);
 }
 
-/* 전체 별 */
+.star.sm.half::after {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.star.md.half::after {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.star.lg.half::after {
+  font-size: 32px;
+  line-height: 1;
+}
+
 .star.full::before {
   content: '★';
-  font-size: 24px;
   color: #ff2e63;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 읽기 전용 모드 스타일 (노란색) */
+.star.readonly.empty::before {
+  content: '☆';
+  color: #64748b;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.star.readonly.half::before {
+  content: '☆';
+  color: #64748b;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.star.readonly.half::after {
+  content: '★';
+  color: #fbbf24;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  clip-path: inset(0 50% 0 0);
+}
+
+.star.readonly.full::before {
+  content: '★';
+  color: #fbbf24;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }

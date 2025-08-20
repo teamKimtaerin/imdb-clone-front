@@ -104,6 +104,11 @@ export default function WatchaMainPage() {
     };
   }, [movies]);
 
+  // 영화 카드 클릭 핸들러
+  const handleMovieClick = (movieId: string) => {
+    router.push(`/movie/${movieId}`);
+  };
+
   // 카테고리 클릭
   const handleCategoryClick = (category: string) => {
     setActiveCategories((prev) =>
@@ -190,13 +195,16 @@ export default function WatchaMainPage() {
                 audience={movie.audience}
                 trailer_url={movie.trailer_url}
                 description={movie.description}
-                director={movie.director}
-                is_adult_content={movie.is_adult_content}
+                director={
+                  typeof movie.director === 'object' ? movie.director : { name: movie.director }
+                }
+                is_adult_content={movie.is_adult_content ?? false}
                 poster_url={movie.poster_url}
                 age_rating={movie.age_rating}
                 created_at={movie.created_at}
                 __v={movie.__v}
                 rank={movie.rank && activeCategories.length === 0 ? movie.rank : undefined}
+                onClick={() => handleMovieClick(movie._id)}
               />
             );
           })}
