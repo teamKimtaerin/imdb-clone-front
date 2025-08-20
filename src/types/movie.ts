@@ -21,7 +21,7 @@ export interface Movie {
   trailer_url?: string;
   description: string;
   cast: Cast[];
-  director: Director; // string 타입 제거 - DB에서 항상 객체로 저장됨
+  director: Director;
   poster_url?: string;
   age_rating: string;
   is_adult_content?: boolean;

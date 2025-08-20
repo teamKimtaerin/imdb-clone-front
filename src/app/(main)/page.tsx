@@ -33,6 +33,15 @@ export default function WatchaMainPage() {
     loadMovies(1, activeCategories);
   }, [loadMovies, activeCategories]);
 
+  // 카테고리 변경
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`useEffect 실행 - 카테고리 변경: [${activeCategories.join(', ')}]`);
+    }
+
+    loadMovies(1, activeCategories);
+  }, [loadMovies, activeCategories]);
+
   // 무한 스크롤 Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -128,9 +137,10 @@ export default function WatchaMainPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
             gap: '20px 12px',
             marginBottom: '40px',
+            justifyContent: 'center',
           }}
         >
           {filteredMovies.map((movie, index) => {
@@ -150,6 +160,7 @@ export default function WatchaMainPage() {
                 trailer_url={movie.trailer_url}
                 description={movie.description}
                 director={typeof movie.director === 'object' ? movie.director.name : movie.director}
+                is_adult_content={movie.is_adult_content}
                 poster_url={movie.poster_url}
                 age_rating={movie.age_rating}
                 created_at={movie.created_at}
