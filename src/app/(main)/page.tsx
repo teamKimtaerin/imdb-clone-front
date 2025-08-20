@@ -65,6 +65,14 @@ export default function WatchaMainPage() {
     loadMovies(1, activeCategories);
   }, []); // 빈 dependency 배열로 한 번만 실행
 
+  // 카테고리가 변경될 때 영화 다시 로드
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Categories changed, reloading movies with:', activeCategories);
+    }
+    loadMovies(1, activeCategories);
+  }, [activeCategories, loadMovies]);
+
   // 무한 스크롤 Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
