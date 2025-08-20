@@ -5,12 +5,14 @@ import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
 import { NavigationBarProps } from '@/types/navigationBar';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
   activeMenu = '홈',
   onSearch,
   onMenuClick,
 }) => {
+  const { user, logout } = useAuth();
   const [searchValue, setSearchValue] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -153,18 +155,60 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           </span>
         </div>
 
-        <button
-          style={profileBtnStyle}
-          onMouseEnter={(e) => {
-            (e.target as HTMLElement).style.background = watchaTokens.colors.primaryDark;
-          }}
-          onMouseLeave={(e) => {
-            (e.target as HTMLElement).style.background = watchaTokens.colors.primary;
-          }}
-          onClick={() => router.push('/login')}
-        >
-          회원가입/로그인
-        </button>
+        {user ? (
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button
+              style={{
+                ...profileBtnStyle,
+                background: 'transparent',
+                border: `1px solid ${watchaTokens.colors.border}`,
+              }}
+              onMouseEnter={(e) => {
+                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.primary;
+                (e.target as HTMLElement).style.color = watchaTokens.colors.primary;
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.border;
+                (e.target as HTMLElement).style.color = watchaTokens.colors.text.primary;
+              }}
+              onClick={() => router.push('/settings')}
+            >
+              마이페이지
+            </button>
+            <button
+              style={{
+                ...profileBtnStyle,
+                background: 'transparent',
+                border: `1px solid ${watchaTokens.colors.border}`,
+                padding: `${watchaTokens.spacing.sm} ${watchaTokens.spacing.md}`,
+              }}
+              onMouseEnter={(e) => {
+                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.primary;
+                (e.target as HTMLElement).style.color = watchaTokens.colors.primary;
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.border;
+                (e.target as HTMLElement).style.color = watchaTokens.colors.text.secondary;
+              }}
+              onClick={logout}
+            >
+              로그아웃
+            </button>
+          </div>
+        ) : (
+          <button
+            style={profileBtnStyle}
+            onMouseEnter={(e) => {
+              (e.target as HTMLElement).style.background = watchaTokens.colors.primaryDark;
+            }}
+            onMouseLeave={(e) => {
+              (e.target as HTMLElement).style.background = watchaTokens.colors.primary;
+            }}
+            onClick={() => router.push('/login')}
+          >
+            회원가입/로그인
+          </button>
+        )}
       </div>
     </nav>
   );
