@@ -18,3 +18,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** 버튼 내용 */
   children?: ReactNode;
 }
+
+export interface ButtonState {
+  isHovered: boolean;
+  isPressed: boolean;
+}
