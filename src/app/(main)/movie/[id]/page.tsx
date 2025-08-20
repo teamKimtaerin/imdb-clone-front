@@ -1,37 +1,74 @@
 'use client';
+
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { ReviewList } from '@/components/Review/ReviewList';
+import useMovie from '@/hooks/useMovie';
+import MovieDetail from '@/components/movie/MovieDetail/MovieDetail';
+import { NavigationBar } from '@/components/common/NavigationBar/NavigationBar';
+
 
 const MovieDetailPage: React.FC = () => {
   const params = useParams();
   const id = params.id as string;
 
-  // TODO: 실제 구현에서는 useAuth 훅이나 context에서 가져오기
-  const currentUserId = 'user123'; // 임시로 하드코딩
+  const { movie, isLoading, error } = useMovie(id);
+
+  const handleMenuClick = (menu: string) => {
+    console.log(`메뉴 클릭: ${menu}`);
+    // 실제 페이지 이동 로직은 useRouter 등을 사용
+  };
+
+  const handleSearch = (value: string) => {
+    console.log(`검색어: ${value}`);
+    // 실제 검색 페이지로 이동하는 로직 추가
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900">
+        <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
+        <div className="flex items-center justify-center h-screen text-white">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+            <div>로딩 중...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900">
+        <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
+        <div className="flex items-center justify-center h-screen text-red-400">
+          <div className="text-center">
+            <div className="text-6xl mb-4">⚠️</div>
+            <div className="text-xl">영화를 불러오는 중 오류가 발생했습니다.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!movie) {
+    return (
+      <div className="min-h-screen bg-gray-900">
+        <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
+        <div className="flex items-center justify-center h-screen text-gray-400">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🎬</div>
+            <div className="text-xl">영화를 찾을 수 없습니다.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* 테스트용 영화 정보 헤더 */}
-      <div
-        style={{
-          marginBottom: '40px',
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          textAlign: 'center',
-        }}
-      >
-        <h1 style={{ margin: '0 0 10px 0', fontSize: '24px', fontWeight: 'bold' }}>
-          영화 상세 페이지 (테스트)
-        </h1>
-        <p style={{ margin: '0', color: '#666' }}>
-          영화 ID: {id} | 현재 사용자: {currentUserId}
-        </p>
-      </div>
-
-      {/* 리뷰 섹션 */}
-      <ReviewList movieId={id} currentUserId={currentUserId} />
+    <div className="min-h-screen bg-gray-900">
+      <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
+      <MovieDetail movie={movie} />
     </div>
   );
 };
