@@ -3,14 +3,7 @@
 
 import React, { useState } from 'react';
 import { watchaTokens } from '@/styles/tokens';
-
-interface HeroBannerProps {
-  title?: string;
-  subtitle?: string;
-  discount?: string;
-  backgroundImage?: string | null;
-  onButtonClick?: () => void;
-}
+import { HeroBannerProps } from '@/types/heroBanner';
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
   title = '28일 후',
@@ -27,7 +20,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
     height: '400px',
     background: backgroundImage
       ? `linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%), url(${backgroundImage})`
-      : `linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%), 
+      : `linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%),
          linear-gradient(135deg, #1a1a1a, #2a2a2a)`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
