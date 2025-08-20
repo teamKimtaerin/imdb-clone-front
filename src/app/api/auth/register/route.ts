@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const validatedData = registerSchema.parse(body);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/register`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/auth/register`,
       {
         method: 'POST',
         headers: {

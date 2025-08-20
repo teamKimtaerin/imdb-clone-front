@@ -21,7 +21,7 @@ export async function GET(_request: NextRequest) {
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/profile`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/auth/profile`,
       {
         method: 'GET',
         headers: {

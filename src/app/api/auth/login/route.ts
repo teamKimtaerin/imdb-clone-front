@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const validatedData = loginSchema.parse(body);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/login`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/auth/login`,
       {
         method: 'POST',
         headers: {

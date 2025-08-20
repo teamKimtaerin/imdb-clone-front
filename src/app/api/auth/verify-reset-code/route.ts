@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     // 백엔드 API 호출
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/verify-reset-code`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/auth/verify-reset-code`,
       {
         method: 'POST',
         headers: {

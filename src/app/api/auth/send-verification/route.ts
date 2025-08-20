@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const validatedData = emailVerificationSchema.parse(body);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/send-verification`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/auth/send-verification`,
       {
         method: 'POST',
         headers: {

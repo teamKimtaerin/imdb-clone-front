@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef, Suspense, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
@@ -20,19 +20,11 @@ const categoriesList = [
   '드라마',
 ];
 
-function WatchaMainPageContent() {
+export default function WatchaMainPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('WatchaMainPage component rendered'); // 디버깅용
-  }
-
   const { movies, loading, hasMore, loadMovies, loadNextPage } = useMovies();
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('useMovies returned:', { movies: movies.length, loading, hasMore }); // 디버깅용
-  }
 
   // URL에서 카테고리 파라미터 읽기
   const categoryParam = searchParams.get('category');
@@ -53,23 +45,17 @@ function WatchaMainPageContent() {
     setActiveCategories(newCategories);
   }, [categoryParam]);
 
-  // 초기 로드 - 컴포넌트 마운트 시 즉시 실행
+  // 초기 로드
   useEffect(() => {
-    console.log('🚀 Initial load useEffect triggered'); // 디버깅용
     if (!isInitialized) {
-      console.log('📞 Calling loadMovies(1, []) for initial load'); // 디버깅용
       loadMovies(1, initialCategories);
       setIsInitialized(true);
     }
-  }, [loadMovies, isInitialized, initialCategories]); // initialCategories 추가
+  }, [loadMovies, isInitialized, initialCategories]);
 
   // 카테고리가 변경될 때 영화 다시 로드
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Categories changed, reloading movies with:', activeCategories);
-    }
     if (isInitialized) {
-      // 초기화 후에만 카테고리 변경에 따른 로드 수행
       loadMovies(1, activeCategories);
     }
   }, [activeCategories, loadMovies, isInitialized]);
@@ -82,9 +68,6 @@ function WatchaMainPageContent() {
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading && isInitialized) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔄 Loading next page via intersection observer');
-        }
         loadNextPage(activeCategories);
       }
     };
@@ -105,7 +88,6 @@ function WatchaMainPageContent() {
 
   // 영화 카드 클릭 핸들러
   const handleMovieClick = (movieId: string) => {
-    console.log('Movie clicked:', movieId); // 디버깅용
     router.push(`/movie/${movieId}`);
   };
 
@@ -115,7 +97,6 @@ function WatchaMainPageContent() {
       ? activeCategories.filter((c) => c !== category)
       : [...activeCategories, category];
 
-    // URL 업데이트
     const params = new URLSearchParams();
     if (newCategories.length > 0) {
       params.set('category', newCategories.join(','));
@@ -125,7 +106,6 @@ function WatchaMainPageContent() {
     router.push(newUrl);
   };
 
-  // 검색은 NavigationBar에서 처리하므로 더미 함수
   const handleSearch = (_query: string) => {
     // 검색은 NavigationBar에서 URL 변경으로 처리됨
   };
@@ -269,28 +249,5 @@ function WatchaMainPageContent() {
 
       <SimpleFooter />
     </div>
-  );
-}
-
-export default function WatchaMainPage() {
-  return (
-    <Suspense
-      fallback={
-        <div
-          style={{
-            minHeight: '100vh',
-            background: '#000',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div>페이지를 로드하는 중...</div>
-        </div>
-      }
-    >
-      <WatchaMainPageContent />
-    </Suspense>
   );
 }

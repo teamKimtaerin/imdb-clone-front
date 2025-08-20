@@ -3,26 +3,32 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { watchaTokens } from '@/styles/tokens';
 import { NavigationBarProps } from '@/types/navigationBar';
 import { SearchDropdown } from '@/components/common/SearchDropdown';
 import { SearchItem } from '@/types/search';
 import { useSearchStore } from '@/store/searchStore';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useAuth } from '@/contexts/AuthContext';
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
   onSearch: _onSearch,
   onMenuClick,
 }) => {
-  const { user, logout } = useAuth();
+  const { data: session } = useSession();
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchItem[]>([]);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // 클라이언트에서만 렌더링되도록 보장
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Zustand 스토어에서 검색 관련 상태와 액션 가져오기
   const { performSearch, isLoading, results } = useSearchStore();
@@ -34,6 +40,8 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
 
   // 디바운스된 검색어가 변경될 때마다 API 호출 (드롭다운용)
   useEffect(() => {
+    if (!mounted) return;
+
     if (process.env.NODE_ENV === 'development') {
       console.log(
         'Debounced search value:',
@@ -48,122 +56,40 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
         console.log('Performing search with:', debouncedSearchValue); // 디버깅용
       }
       performSearch(debouncedSearchValue);
-    } else if (debouncedSearchValue === '') {
-      // 검색어가 비어있으면 결과 초기화
+    } else {
       setSearchResults([]);
       setIsDropdownVisible(false);
     }
-  }, [debouncedSearchValue, performSearch]);
+  }, [debouncedSearchValue, performSearch, mounted]);
 
-  // 검색 결과를 드롭다운에 반영
+  // 검색 결과가 변경될 때 드롭다운 업데이트
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Search results updated:', results); // 디버깅용
-      console.log('Current searchValue:', searchValue); // 디버깅용
-      console.log('isLoading:', isLoading); // 디버깅용
-    }
+    if (!mounted) return;
 
-    if (results && results.length > 0 && searchValue.trim()) {
-      setSearchResults(results);
-      setIsDropdownVisible(true);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Setting dropdown visible with results:', results.length); // 디버깅용
-      }
-    } else if (searchValue.trim() && !isLoading && results.length === 0) {
-      // 검색어가 있지만 결과가 없는 경우
-      setSearchResults([]);
-      setIsDropdownVisible(true); // "검색 결과가 없습니다" 메시지를 보여주기 위해
-      if (process.env.NODE_ENV === 'development') {
-        console.log('No results found, showing empty dropdown'); // 디버깅용
-      }
-    } else if (!searchValue.trim()) {
-      // 검색어가 없는 경우
+    if (results && results.length > 0) {
+      // 검색 결과를 SearchItem 형태로 변환
+      const searchItems: SearchItem[] = results.flatMap((result) =>
+        result.movieIds.map((movieId) => ({
+          id: movieId,
+          title: result.title || '제목 없음',
+          type: 'movie' as const,
+          year: result.year,
+          poster: result.poster,
+        })),
+      );
+
+      setSearchResults(searchItems);
+      setIsDropdownVisible(searchItems.length > 0 && isSearchFocused);
+    } else {
       setSearchResults([]);
       setIsDropdownVisible(false);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Empty search value, hiding dropdown'); // 디버깅용
-      }
     }
-  }, [results, searchValue, isLoading]);
-
-  const navStyle: React.CSSProperties = {
-    background: watchaTokens.colors.background,
-    borderBottom: `1px solid ${watchaTokens.colors.border}`,
-    padding: `${watchaTokens.spacing.md} ${watchaTokens.spacing.xl}`,
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: '1320px',
-    margin: '0 auto',
-    display: 'flex',
-    alignItems: 'center',
-    gap: isMobile ? watchaTokens.spacing.md : watchaTokens.spacing.xl,
-    flexWrap: isMobile ? 'wrap' : 'nowrap',
-  };
-
-  const logoStyle: React.CSSProperties = {
-    color: watchaTokens.colors.primary,
-    fontSize: watchaTokens.typography.fontSize['2xl'],
-    fontWeight: watchaTokens.typography.fontWeight.bold,
-    letterSpacing: '-1px',
-    cursor: 'pointer',
-    userSelect: 'none',
-    transition: 'opacity 0.2s ease',
-  };
-
-  const searchContainerStyle: React.CSSProperties = {
-    flex: 1,
-    maxWidth: isMobile ? '100%' : '400px',
-    marginLeft: isMobile ? '0' : 'auto',
-    position: 'relative',
-    order: isMobile ? 3 : 0,
-    width: isMobile ? '100%' : 'auto',
-  };
-
-  const searchStyle: React.CSSProperties = {
-    width: '100%',
-    padding: `${watchaTokens.spacing.sm} ${watchaTokens.spacing.md}`,
-    paddingRight: '40px',
-    background: watchaTokens.colors.surface,
-    border: `1px solid ${isSearchFocused ? watchaTokens.colors.primary : watchaTokens.colors.border}`,
-    borderRadius: isDropdownVisible
-      ? `${watchaTokens.borderRadius.pill} ${watchaTokens.borderRadius.pill} 0 0`
-      : watchaTokens.borderRadius.pill,
-    color: watchaTokens.colors.text.primary,
-    fontSize: watchaTokens.typography.fontSize.sm,
-    outline: 'none',
-    transition: 'all 0.2s ease',
-  };
-
-  const searchIconStyle: React.CSSProperties = {
-    position: 'absolute',
-    right: '12px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    color: watchaTokens.colors.text.secondary,
-    cursor: 'pointer',
-    fontSize: '18px',
-  };
-
-  const profileBtnStyle: React.CSSProperties = {
-    padding: `${watchaTokens.spacing.sm} ${watchaTokens.spacing.md}`,
-    background: watchaTokens.colors.primary,
-    color: watchaTokens.colors.text.primary,
-    border: 'none',
-    borderRadius: watchaTokens.borderRadius.pill,
-    fontSize: watchaTokens.typography.fontSize.sm,
-    fontWeight: watchaTokens.typography.fontWeight.medium,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  };
-
-  // 검색 API 호출 함수 (데모용) - 제거됨, 이제 Zustand 스토어 사용
+  }, [results, isSearchFocused, mounted]);
 
   // 화면 크기 감지
   useEffect(() => {
+    if (!mounted) return;
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -171,150 +97,198 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [mounted]);
 
-  // 외부 클릭시 드롭다운 닫기
+  // 외부 클릭 감지
   useEffect(() => {
+    if (!mounted) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
+        setIsSearchFocused(false);
         setIsDropdownVisible(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [mounted]);
 
-  const handleSearch = () => {
-    if (searchValue.trim()) {
-      // URL을 검색 페이지로 변경
-      router.push(`/search?search=${encodeURIComponent(searchValue.trim())}`);
-      setIsDropdownVisible(false);
-    } else {
-      // 검색어가 비어있으면 홈으로 이동
-      router.push('/');
-      setIsDropdownVisible(false);
-    }
-  };
-
-  const handleSearchItemClick = (item: SearchItem) => {
-    setSearchValue(item.key_display);
-    setIsDropdownVisible(false);
-    // URL을 검색 페이지로 변경
-    router.push(`/search?search=${encodeURIComponent(item.key_display)}`);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Search input changed:', value); // 디버깅용
-    }
     setSearchValue(value);
 
-    // 검색어가 비어있으면 즉시 드롭다운 숨기기
     if (!value.trim()) {
       setSearchResults([]);
       setIsDropdownVisible(false);
     }
   };
 
-  const handleLogoClick = () => {
-    router.push('/');
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      router.push(`/search?search=${encodeURIComponent(searchValue.trim())}`);
+      setIsSearchFocused(false);
+      setIsDropdownVisible(false);
+    }
   };
 
-  return (
-    <nav style={navStyle}>
-      <div style={containerStyle}>
-        <div
-          style={logoStyle}
-          onClick={handleLogoClick}
-          onMouseEnter={(e) => {
-            (e.target as HTMLElement).style.opacity = '0.8';
-          }}
-          onMouseLeave={(e) => {
-            (e.target as HTMLElement).style.opacity = '1';
-          }}
-        >
-          WATCHA
-        </div>
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+    if (searchResults.length > 0) {
+      setIsDropdownVisible(true);
+    }
+  };
 
-        <div style={searchContainerStyle} ref={searchContainerRef}>
+  const handleItemClick = (item: SearchItem) => {
+    if (item.type === 'movie') {
+      router.push(`/movie/${item.id}`);
+    }
+    setIsSearchFocused(false);
+    setIsDropdownVisible(false);
+    setSearchValue('');
+  };
+
+  const handleLogout = async () => {
+    try {
+      // next-auth signOut 사용
+      const { signOut } = await import('next-auth/react');
+      await signOut({ redirect: false });
+      router.push('/login');
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
+  };
+
+  // 마운트되지 않았으면 로딩 상태 표시
+  if (!mounted) {
+    return (
+      <div
+        style={{
+          padding: '16px 24px',
+          borderBottom: `1px solid ${watchaTokens.colors.border}`,
+          background: '#0a0a0a',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ fontSize: '24px', fontWeight: 'bold', color: watchaTokens.colors.primary }}>
+          IMDB Clone
+        </div>
+        <div>로딩 중...</div>
+      </div>
+    );
+  }
+
+  return (
+    <nav
+      style={{
+        padding: '16px 24px',
+        borderBottom: `1px solid ${watchaTokens.colors.border}`,
+        background: '#0a0a0a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '24px',
+      }}
+    >
+      {/* 로고 */}
+      <div
+        onClick={() => router.push('/')}
+        style={{
+          fontSize: '24px',
+          fontWeight: 'bold',
+          color: watchaTokens.colors.primary,
+          cursor: 'pointer',
+          flexShrink: 0,
+        }}
+      >
+        IMDB Clone
+      </div>
+
+      {/* 검색 영역 */}
+      <div
+        ref={searchContainerRef}
+        style={{
+          position: 'relative',
+          flex: 1,
+          maxWidth: '600px',
+          margin: '0 auto',
+        }}
+      >
+        <form onSubmit={handleSearchSubmit}>
           <input
             type="text"
-            placeholder="작품 제목, 배우, 감독을 검색해보세요"
+            placeholder="영화, 배우를 검색하세요..."
             value={searchValue}
-            onChange={handleInputChange}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            style={searchStyle}
+            onChange={handleSearchChange}
+            onFocus={handleSearchFocus}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              border: `1px solid ${watchaTokens.colors.border}`,
+              background: watchaTokens.colors.surface,
+              color: watchaTokens.colors.text.primary,
+              fontSize: '14px',
+              outline: 'none',
+              transition: 'border-color 0.2s ease',
+            }}
           />
-          <span style={searchIconStyle} onClick={handleSearch}>
-            {isLoading ? '⏳' : '🔍'}
-          </span>
+        </form>
+
+        {/* 검색 드롭다운 */}
+        {isDropdownVisible && (
           <SearchDropdown
             items={searchResults}
-            isVisible={isDropdownVisible}
-            onItemClick={handleSearchItemClick}
-            query={searchValue}
+            onItemClick={handleItemClick}
+            isLoading={isLoading}
           />
-        </div>
+        )}
+      </div>
 
-        {user ? (
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+      {/* 사용자 메뉴 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+        {session?.user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ color: watchaTokens.colors.text.primary, fontSize: '14px' }}>
+              {session.user.name || session.user.email}
+            </span>
             <button
+              onClick={handleLogout}
               style={{
-                ...profileBtnStyle,
-                background: 'transparent',
+                padding: '8px 16px',
+                borderRadius: '6px',
                 border: `1px solid ${watchaTokens.colors.border}`,
-              }}
-              onMouseEnter={(e) => {
-                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.primary;
-                (e.target as HTMLElement).style.color = watchaTokens.colors.primary;
-              }}
-              onMouseLeave={(e) => {
-                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.border;
-                (e.target as HTMLElement).style.color = watchaTokens.colors.text.primary;
-              }}
-              onClick={() => router.push('/settings')}
-            >
-              마이페이지
-            </button>
-            <button
-              style={{
-                ...profileBtnStyle,
                 background: 'transparent',
-                border: `1px solid ${watchaTokens.colors.border}`,
-                padding: `${watchaTokens.spacing.sm} ${watchaTokens.spacing.md}`,
+                color: watchaTokens.colors.text.primary,
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
               }}
-              onMouseEnter={(e) => {
-                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.primary;
-                (e.target as HTMLElement).style.color = watchaTokens.colors.primary;
-              }}
-              onMouseLeave={(e) => {
-                (e.target as HTMLElement).style.borderColor = watchaTokens.colors.border;
-                (e.target as HTMLElement).style.color = watchaTokens.colors.text.secondary;
-              }}
-              onClick={logout}
             >
               로그아웃
             </button>
           </div>
         ) : (
           <button
-            style={profileBtnStyle}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.background = watchaTokens.colors.primaryDark;
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.background = watchaTokens.colors.primary;
-            }}
             onClick={() => router.push('/login')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: watchaTokens.colors.primary,
+              color: 'white',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
           >
-            회원가입/로그인
+            로그인
           </button>
         )}
       </div>
