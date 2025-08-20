@@ -26,11 +26,17 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/js-cookie": "^3.0.6",
     "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "jose": "^6.0.12",
+    "js-cookie": "^3.0.5",
     "mongoose": "^8.17.2",
     "next": "15.4.6",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.0",
