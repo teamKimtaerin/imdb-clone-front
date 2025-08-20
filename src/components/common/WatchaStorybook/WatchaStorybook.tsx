@@ -172,11 +172,12 @@ export default function WatchaStorybook() {
                 categories={['액션', '어드벤처']}
                 running_time={120}
                 release_date="2010-01-01"
-                rating_total={props.rating}
+                rating_total={props.rating * 1234}
                 review_count={1234}
                 audience={500000}
                 description="쥬라기 월드 설명"
-                director="콜린 트레보로우"
+                director={{ name: '콜린 트레보로우' }}
+                is_adult_content={false}
                 poster_url=""
                 age_rating="12"
               />
@@ -186,11 +187,12 @@ export default function WatchaStorybook() {
                 categories={['공포', '스릴러']}
                 running_time={113}
                 release_date="2010-01-01"
-                rating_total={props.rating}
+                rating_total={props.rating * 987}
                 review_count={987}
                 audience={300000}
                 description="28일 후 설명"
-                director="대니 보일"
+                director={{ name: '대니 보일' }}
+                is_adult_content={true}
                 poster_url=""
                 age_rating="18"
               />
@@ -200,11 +202,12 @@ export default function WatchaStorybook() {
                 categories={['SF', '액션']}
                 running_time={180}
                 release_date="2010-01-01"
-                rating_total={4.5}
+                rating_total={4.5 * 2500}
                 review_count={2500}
                 audience={1000000}
                 description="아바타 3 설명"
-                director="제임스 카메론"
+                director={{ name: '제임스 카메론' }}
+                is_adult_content={false}
                 poster_url=""
                 age_rating="12"
               />
@@ -214,11 +217,12 @@ export default function WatchaStorybook() {
                 categories={['SF', '드라마']}
                 running_time={155}
                 release_date="2010-01-01"
-                rating_total={props.rating}
+                rating_total={props.rating * 1800}
                 review_count={1800}
                 audience={800000}
                 description="듄: 파트3 설명"
-                director="드니 빌뇌브"
+                director={{ name: '드니 빌뇌브' }}
+                is_adult_content={false}
                 poster_url=""
                 age_rating="15"
               />
@@ -355,11 +359,12 @@ export default function WatchaStorybook() {
                     categories={['액션']}
                     running_time={120}
                     release_date={`${movie.year || 2012}-01-01`}
-                    rating_total={movie.rating || 4.0}
+                    rating_total={(movie.rating || 4.0) * 1000}
                     review_count={1000}
                     audience={500000}
                     description={'영화 설명'}
-                    director={'감독'}
+                    director={{ name: '감독' }}
+                    is_adult_content={false}
                     poster_url={''}
                     age_rating={'12'}
                     {...movie}

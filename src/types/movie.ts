@@ -1,6 +1,12 @@
 export interface Cast {
   name: string;
   role: string;
+  profile_image?: string;
+}
+
+export interface Director {
+  name: string;
+  profile_image?: string;
 }
 
 export interface Movie {
@@ -15,9 +21,10 @@ export interface Movie {
   trailer_url?: string;
   description: string;
   cast: Cast[];
-  director: string;
+  director: Director;
   poster_url?: string;
-  age_rating: string; // 시청 등급: ALL, 12, 15, 18 등
+  age_rating: string; // 시청 등급: ALL, 12, 15, 18, NR 등
+  is_adult_content: boolean; // 18등급 여부 (블러 효과용)
   created_at?: string;
   __v?: number;
   rank?: number;
