@@ -7,7 +7,7 @@ import { Review } from '@/types/review';
 interface ReviewListProps {
   movieId: string;
   currentUserId?: string;
-  onRatingChange?: (averageRating: number, totalReviews: number) => void; // 평균 rating 변경 콜백 추가
+  onRatingChange?: (averageRating: number, totalReviews: number) => void;
 }
 
 export const ReviewList: React.FC<ReviewListProps> = ({
@@ -28,6 +28,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({
     updateReview,
     deleteReview,
     mutationLoading,
+    isInitialized, // 초기화 상태 추가
   } = useReviews({ movieId });
 
   // 평균 rating 계산 함수
@@ -39,11 +40,11 @@ export const ReviewList: React.FC<ReviewListProps> = ({
 
   // 리뷰 데이터가 변경될 때마다 평균 rating을 부모에게 전달
   useEffect(() => {
-    if (onRatingChange && reviews.length > 0) {
+    if (onRatingChange && isInitialized) {
       const averageRating = calculateAverageRating(reviews);
       onRatingChange(averageRating, reviews.length);
     }
-  }, [reviews, onRatingChange]);
+  }, [reviews, onRatingChange, isInitialized]);
 
   /**
    * 새 리뷰 작성 핸들러
@@ -107,11 +108,26 @@ export const ReviewList: React.FC<ReviewListProps> = ({
     }
   };
 
+  // 에러 상태
   if (error) {
     return (
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         <div className="bg-red-900 border border-red-700 text-red-200 px-6 py-4 rounded-lg text-center">
           리뷰를 불러오는 중 오류가 발생했습니다: {error}
+        </div>
+      </div>
+    );
+  }
+
+  // 초기 로딩 상태 (아직 초기화되지 않았을 때)
+  if (!isInitialized && loading) {
+    return (
+      <div className="bg-black text-white">
+        <div className="container mx-auto px-6 py-8 max-w-4xl">
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto mb-4"></div>
+            <div className="text-gray-400">리뷰를 불러오는 중...</div>
+          </div>
         </div>
       </div>
     );
@@ -164,24 +180,26 @@ export const ReviewList: React.FC<ReviewListProps> = ({
         )}
 
         {/* 리뷰 목록 */}
-        <div className="space-y-4">
-          {reviews.map((review) => (
-            <ReviewCard
-              key={review._id}
-              review={review}
-              currentUserId={currentUserId}
-              onEdit={handleEditStart}
-              onDelete={handleDeleteReview}
-              deleteLoading={mutationLoading}
-            />
-          ))}
-        </div>
+        {reviews.length > 0 && (
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <ReviewCard
+                key={review._id}
+                review={review}
+                currentUserId={currentUserId}
+                onEdit={handleEditStart}
+                onDelete={handleDeleteReview}
+                deleteLoading={mutationLoading}
+              />
+            ))}
+          </div>
+        )}
 
-        {/* 로딩 상태 */}
-        {loading && (
+        {/* 추가 로딩 상태 (더 많은 데이터 로드 중) */}
+        {loading && reviews.length > 0 && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto mb-4"></div>
-            <div className="text-gray-400">리뷰를 불러오는 중...</div>
+            <div className="text-gray-400">더 많은 리뷰를 불러오는 중...</div>
           </div>
         )}
 
@@ -197,8 +215,8 @@ export const ReviewList: React.FC<ReviewListProps> = ({
           </div>
         )}
 
-        {/* 빈 상태 */}
-        {!loading && reviews.length === 0 && (
+        {/* 빈 상태 - 초기화가 완료된 후에만 표시 */}
+        {isInitialized && !loading && reviews.length === 0 && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📝</div>
             <div className="text-xl text-gray-400 mb-2">아직 작성된 리뷰가 없습니다</div>
