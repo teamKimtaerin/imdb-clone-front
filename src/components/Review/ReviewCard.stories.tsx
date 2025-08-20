@@ -35,10 +35,18 @@ const mockReview = {
   rating: 4.5,
   content:
     '기대 이상으로 재미있었습니다. 특히 주인공의 심리를 섬세하게 묘사하는 연출이 뛰어났고, 반전이 흥미로웠습니다. 다른 사람들에게도 추천하고 싶은 영화입니다.',
+  is_spoiler: false,
   user: {
     user_id: 'user123',
     nickname: '영화보는펭귄',
     profile_img_url: 'https://placehold.co/100x100',
+  },
+  movie: {
+    movie_id: 'movie123',
+    title: '인터스텔라',
+    release_date: '2014-10-26',
+    running_time: 169,
+    poster_url: 'https://placehold.co/300x450',
   },
   created_at: '2023-08-15T10:00:00Z', // createdAt -> created_at로 수정
 };

@@ -1,10 +1,13 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'text' | 'danger';
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** 버튼 변형 스타일 */
-  variant?: 'primary' | 'secondary' | 'ghost' | 'text' | 'danger';
+  variant?: ButtonVariant; // 직접 타입 참조
   /** 버튼 크기 */
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: ButtonSize; // 직접 타입 참조
   /** 전체 너비 사용 */
   fullWidth?: boolean;
   /** 로딩 상태 */
@@ -17,4 +20,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   rounded?: boolean;
   /** 버튼 내용 */
   children?: ReactNode;
+}
+
+export interface ButtonState {
+  isHovered: boolean;
+  isPressed: boolean;
 }
