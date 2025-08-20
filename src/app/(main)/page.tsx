@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { MovieCard } from '@/components/movie/MovieCard';
@@ -20,6 +21,8 @@ const categoriesList = [
 ];
 
 export default function WatchaMainPage() {
+  const router = useRouter();
+
   if (process.env.NODE_ENV === 'development') {
     console.log('WatchaMainPage component rendered'); // 디버깅용
   }
@@ -31,39 +34,20 @@ export default function WatchaMainPage() {
   }
 
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastMovieRef = useRef<HTMLDivElement | null>(null);
 
-  // 초기 로드 - 간단한 useEffect로 변경
+  // 초기 로드 - 컴포넌트 마운트 시 즉시 실행
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('useEffect triggered, loading movies with categories:', activeCategories); // 디버깅용
+    console.log('🚀 Initial load useEffect triggered'); // 디버깅용
+    if (!isInitialized) {
+      console.log('📞 Calling loadMovies(1, []) for initial load'); // 디버깅용
+      loadMovies(1, []);
+      setIsInitialized(true);
     }
-
-    // API 서버가 실행되지 않은 경우를 위한 임시 테스트
-    const testApiCall = async () => {
-      try {
-        console.log('Testing direct API call...');
-        const response = await fetch(
-          'http://localhost:4000/api/movies?page=1&limit=5&sort=popular',
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Direct API call result:', data);
-      } catch (error) {
-        console.error('Direct API call failed:', error);
-        console.log('API 서버가 실행되지 않았습니다. API 서버를 시작해주세요.');
-      }
-    };
-
-    testApiCall();
-    loadMovies(1, activeCategories);
-  }, []); // 빈 dependency 배열로 한 번만 실행
+  }, [loadMovies, isInitialized]); // isInitialized 추가
 
   // 카테고리가 변경될 때 영화 다시 로드
   useEffect(() => {
@@ -106,6 +90,7 @@ export default function WatchaMainPage() {
 
   // 영화 카드 클릭 핸들러
   const handleMovieClick = (movieId: string) => {
+    console.log('Movie clicked:', movieId); // 디버깅용
     router.push(`/movie/${movieId}`);
   };
 

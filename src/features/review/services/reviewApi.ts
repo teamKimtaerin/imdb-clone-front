@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Review, ReviewFormData, ReviewsResponse } from '@/types/review';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
 
 // axios 인스턴스 생성 (공통 설정)
 const api = axios.create({
@@ -10,6 +10,11 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 디버깅용 로그
+if (process.env.NODE_ENV === 'development') {
+  console.log('Review API Base URL:', API_BASE_URL);
+}
 
 // TODO: 인증 토큰이 필요하면 request interceptor에서 추가
 // api.interceptors.request.use((config) => {
@@ -27,7 +32,10 @@ export class ReviewApiService {
    */
   static async getMovieReviews(movieId: string, page = 1, limit = 10): Promise<ReviewsResponse> {
     try {
-      const { data } = await api.get(`/api/reviews/movie/${movieId}`, {
+      const url = `/api/reviews/movie/${movieId}`;
+      console.log('🔍 Requesting reviews:', { url, movieId, page, limit }); // 디버깅용
+
+      const { data } = await api.get(url, {
         params: { page, limit },
       });
       return data;

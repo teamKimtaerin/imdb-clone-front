@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseInfiniteScrollOptions<T> {
   /**
@@ -46,14 +46,21 @@ export function useInfiniteScroll<T>({
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // 초기 로드 완료 여부를 추적
+  const initialLoadedRef = useRef(false);
+  // 현재 로딩 중인지 추적 (중복 요청 방지)
+  const loadingRef = useRef(false);
+
   /**
    * 데이터 로드 함수
    */
   const loadData = useCallback(
     async (page: number, isRefresh = false) => {
-      if (loading) return;
+      // 이미 로딩 중이면 중복 요청 방지
+      if (loadingRef.current) return;
 
       try {
+        loadingRef.current = true;
         setLoading(true);
         setError(null);
 
@@ -66,23 +73,29 @@ export function useInfiniteScroll<T>({
 
         setHasMore(result.hasMore);
         setCurrentPage(page);
+
+        // 초기 로드 완료 표시
+        if (!initialLoadedRef.current) {
+          initialLoadedRef.current = true;
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '데이터 로드 중 오류가 발생했습니다.');
       } finally {
+        loadingRef.current = false;
         setLoading(false);
       }
     },
-    [fetchData, loading],
+    [fetchData], // loading 제거
   );
 
   /**
    * 더 많은 데이터 로드
    */
   const loadMore = useCallback(() => {
-    if (hasMore && !loading) {
+    if (hasMore && !loadingRef.current) {
       loadData(currentPage + 1);
     }
-  }, [hasMore, loading, currentPage, loadData]);
+  }, [hasMore, currentPage, loadData]);
 
   /**
    * 데이터 새로고침
@@ -91,6 +104,7 @@ export function useInfiniteScroll<T>({
     setData([]);
     setCurrentPage(1);
     setHasMore(true);
+    initialLoadedRef.current = false; // 초기 로드 상태 리셋
     loadData(1, true);
   }, [loadData]);
 
@@ -98,7 +112,7 @@ export function useInfiniteScroll<T>({
    * 스크롤 이벤트 핸들러
    */
   const handleScroll = useCallback(() => {
-    if (!hasMore || loading) return;
+    if (!hasMore || loadingRef.current) return;
 
     const scrollHeight = document.documentElement.scrollHeight;
     const scrollTop = document.documentElement.scrollTop;
@@ -108,16 +122,16 @@ export function useInfiniteScroll<T>({
     if (scrollTop + clientHeight >= scrollHeight - threshold) {
       loadMore();
     }
-  }, [hasMore, loading, threshold, loadMore]);
+  }, [hasMore, threshold, loadMore]);
 
   /**
-   * 초기 데이터 로드 및 스크롤 이벤트 리스너 등록
+   * 초기 데이터 로드
    */
   useEffect(() => {
-    if (enabled && data.length === 0) {
+    if (enabled && !initialLoadedRef.current && !loadingRef.current) {
       loadData(1, true);
     }
-  }, [enabled, data.length, loadData]);
+  }, [enabled, loadData]);
 
   /**
    * 스크롤 이벤트 리스너 등록/해제

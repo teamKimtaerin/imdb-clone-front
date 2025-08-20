@@ -1,6 +1,6 @@
 import { SearchResponse, SearchItem } from '@/types/search';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 
 // API 응답 타입 (백엔드 형식)
 interface ApiSearchItem {
@@ -32,7 +32,7 @@ export async function searchMoviesAndActors(
 
   try {
     const encodedQuery = encodeURIComponent(query);
-    const url = `${API_BASE_URL}/search?q=${encodedQuery}&limit=${limit}`;
+    const url = `${API_BASE_URL}/api/search?q=${encodedQuery}&limit=${limit}`;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('Search API URL:', url); // 디버깅용

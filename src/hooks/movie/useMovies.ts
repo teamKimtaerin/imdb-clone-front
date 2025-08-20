@@ -4,7 +4,7 @@ import { Movie } from '@/types/movie';
 import { MoviesApiResponse } from '@/types/api';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 const ITEMS_PER_PAGE = Number(process.env.NEXT_PUBLIC_ITEMS_PER_PAGE) || 20;
 
 // 디버깅용 로그
@@ -59,8 +59,11 @@ export function useMovies() {
 
   const loadMovies = useCallback(
     async (pageNum: number = 1, categories: string[] = [], append: boolean = false) => {
+      console.log('🎬 loadMovies called with:', { pageNum, categories, append }); // 디버깅용
+
       // 이미 로딩 중이면 중복 요청 방지
       if (loadingRef.isLoading) {
+        console.log('🚫 Already loading, skipping request'); // 디버깅용
         return;
       }
 
@@ -73,7 +76,7 @@ export function useMovies() {
       }
 
       try {
-        let url = `${API_BASE_URL}/movies?page=${pageNum}&limit=${ITEMS_PER_PAGE}`;
+        let url = `${API_BASE_URL}/api/movies?page=${pageNum}&limit=${ITEMS_PER_PAGE}`;
 
         if (categories.length > 0) {
           // 카테고리 필터링: 선택된 카테고리의 영화들을 가져옴
@@ -214,7 +217,7 @@ export function useMovies() {
         // 각 영화 ID에 대해 개별 API 호출
         const moviePromises = movieIds.map(async (id) => {
           try {
-            const url = `${API_BASE_URL}/movies/${id}`;
+            const url = `${API_BASE_URL}/api/movies/${id}`;
             const response = await axios.get<Movie>(url);
             return response.data;
           } catch (error) {

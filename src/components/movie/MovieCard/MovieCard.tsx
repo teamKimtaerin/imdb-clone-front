@@ -152,7 +152,12 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
         style={cardStyle}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={onClick}
+        onClick={(e) => {
+          console.log('MovieCard clicked:', title); // 디버깅용
+          if (onClick) {
+            onClick();
+          }
+        }}
       >
         <div style={imageContainerStyle}>
           {/* Next.js 최적화된 이미지 */}

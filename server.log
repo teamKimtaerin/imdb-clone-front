@@ -1,0 +1,32 @@
+
+> imdb-clone@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.4.6 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.11:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1012ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.4s
+Environment variables: {
+  NEXT_PUBLIC_API_BASE_URL: 'http://localhost:4000/api',
+  API_BASE_URL: 'http://localhost:4000/api',
+  ITEMS_PER_PAGE: 20
+}
+WatchaMainPage component rendered
+useMovies hook called
+useMovies returned: { movies: 0, loading: false, hasMore: true }
+ GET / 200 in 2607ms
+Environment variables: {
+  NEXT_PUBLIC_API_BASE_URL: 'http://localhost:4000/api',
+  API_BASE_URL: 'http://localhost:4000/api',
+  ITEMS_PER_PAGE: 20
+}
+WatchaMainPage component rendered
+useMovies hook called
+useMovies returned: { movies: 0, loading: false, hasMore: true }
+ GET / 200 in 251ms
+   Reload env: .env.local
