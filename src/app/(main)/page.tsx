@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
@@ -20,7 +20,7 @@ const categoriesList = [
   '드라마',
 ];
 
-export default function WatchaMainPage() {
+function WatchaMainPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -36,7 +36,10 @@ export default function WatchaMainPage() {
 
   // URL에서 카테고리 파라미터 읽기
   const categoryParam = searchParams.get('category');
-  const initialCategories = categoryParam ? categoryParam.split(',').filter(Boolean) : [];
+  const initialCategories = useMemo(
+    () => (categoryParam ? categoryParam.split(',').filter(Boolean) : []),
+    [categoryParam],
+  );
 
   const [activeCategories, setActiveCategories] = useState<string[]>(initialCategories);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -65,39 +68,40 @@ export default function WatchaMainPage() {
     if (process.env.NODE_ENV === 'development') {
       console.log('Categories changed, reloading movies with:', activeCategories);
     }
-    loadMovies(1, activeCategories);
-  }, [activeCategories, loadMovies]);
-
-  // 무한 스크롤 Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          loadNextPage(activeCategories);
-        }
-      },
-      { threshold: 0.1, rootMargin: '100px' },
-    );
-    observerRef.current = observer;
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [movies, hasMore, loading, activeCategories, loadNextPage]);
-
-  useEffect(() => {
-    const currentMovieRef = lastMovieRef.current;
-    const currentObserver = observerRef.current;
-
-    if (currentMovieRef && currentObserver) {
-      currentObserver.observe(currentMovieRef);
+    if (isInitialized) {
+      // 초기화 후에만 카테고리 변경에 따른 로드 수행
+      loadMovies(1, activeCategories);
     }
-    return () => {
-      if (currentMovieRef && currentObserver) {
-        currentObserver.unobserve(currentMovieRef);
+  }, [activeCategories, loadMovies, isInitialized]);
+
+  // 무한 스크롤 처리
+  useEffect(() => {
+    const currentRef = lastMovieRef.current;
+    if (!currentRef) return;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && hasMore && !loading && isInitialized) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 Loading next page via intersection observer');
+        }
+        loadNextPage(activeCategories);
       }
     };
-  }, [movies]);
+
+    observerRef.current = new IntersectionObserver(handleIntersection, {
+      threshold: 0.1,
+      rootMargin: '100px',
+    });
+
+    observerRef.current.observe(currentRef);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loading, isInitialized, loadNextPage, activeCategories]);
 
   // 영화 카드 클릭 핸들러
   const handleMovieClick = (movieId: string) => {
@@ -138,26 +142,6 @@ export default function WatchaMainPage() {
     >
       <header style={{ position: 'sticky', top: 0, zIndex: 100, background: '#000' }}>
         <NavigationBar onSearch={handleSearch} />
-        <div
-          style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid #2a2a2a',
-            background: '#0a0a0a',
-            display: 'flex',
-            gap: '8px',
-            flexWrap: 'wrap',
-            paddingBottom: '16px',
-          }}
-        >
-          {categoriesList.map((category) => (
-            <CategoryTag
-              key={category}
-              label={category}
-              isActive={activeCategories.includes(category)}
-              onClick={() => handleCategoryClick(category)}
-            />
-          ))}
-        </div>
       </header>
 
       <main
@@ -169,71 +153,144 @@ export default function WatchaMainPage() {
           width: '100%',
         }}
       >
-        <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '20px' }}>
-          {activeCategories.length === 0
-            ? '🔥 KTR: 큐레이션'
-            : `🎬 ${activeCategories.join(', ')} 영화`}
-        </h2>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: '20px 12px',
-            marginBottom: '40px',
-            justifyContent: 'center',
-          }}
-        >
-          {movies.map((movie, index) => {
-            const isLastItem = index === movies.length - 1;
-            return (
-              <MovieCard
-                key={movie._id}
-                ref={isLastItem ? lastMovieRef : null}
-                _id={movie._id}
-                title={movie.title}
-                categories={movie.categories}
-                running_time={movie.running_time}
-                release_date={movie.release_date}
-                rating_total={movie.rating_total}
-                review_count={movie.review_count}
-                audience={movie.audience}
-                trailer_url={movie.trailer_url}
-                description={movie.description}
-                director={
-                  typeof movie.director === 'object' ? movie.director : { name: movie.director }
-                }
-                is_adult_content={movie.is_adult_content ?? false}
-                poster_url={movie.poster_url}
-                age_rating={movie.age_rating}
-                created_at={movie.created_at}
-                __v={movie.__v}
-                rank={movie.rank && activeCategories.length === 0 ? movie.rank : undefined}
-                onClick={() => handleMovieClick(movie._id)}
+        {/* 카테고리 필터 */}
+        <div style={{ marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '20px' }}>카테고리</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            {categoriesList.map((category) => (
+              <CategoryTag
+                key={category}
+                label={category}
+                isActive={activeCategories.includes(category)}
+                onClick={() => handleCategoryClick(category)}
               />
-            );
-          })}
+            ))}
+          </div>
         </div>
 
-        {loading && (
+        {/* 영화 제목 */}
+        <div style={{ marginBottom: '30px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: '700' }}>
+            {activeCategories.length > 0 ? `${activeCategories.join(', ')} 영화` : '인기 영화'}
+          </h1>
+        </div>
+
+        {/* 로딩 상태 */}
+        {loading && movies.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
             영화를 불러오는 중...
           </div>
         )}
-        {!hasMore && movies.length > 0 && (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-            모든 영화를 불러왔습니다
+
+        {/* 영화 카드 그리드 */}
+        {movies.length > 0 && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: '20px 12px',
+              marginBottom: '40px',
+              justifyContent: 'center',
+            }}
+          >
+            {movies.map((movie, index) => {
+              const isLast = index === movies.length - 1;
+              return (
+                <div key={movie._id} ref={isLast ? lastMovieRef : null}>
+                  <MovieCard
+                    _id={movie._id}
+                    title={movie.title}
+                    categories={movie.categories}
+                    running_time={movie.running_time}
+                    release_date={movie.release_date}
+                    rating_total={movie.rating_total}
+                    review_count={movie.review_count}
+                    audience={movie.audience}
+                    trailer_url={movie.trailer_url}
+                    description={movie.description}
+                    director={movie.director}
+                    is_adult_content={movie.is_adult_content}
+                    poster_url={movie.poster_url}
+                    age_rating={movie.age_rating}
+                    created_at={movie.created_at}
+                    __v={movie.__v}
+                    rank={movie.rank && activeCategories.length === 0 ? movie.rank : undefined}
+                    onClick={() => handleMovieClick(movie._id)}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
-        {movies.length === 0 && !loading && (
-          <div
-            style={{ textAlign: 'center', padding: '100px 20px', color: '#666', fontSize: '16px' }}
-          >
-            표시할 영화가 없습니다
+
+        {/* 추가 로딩 상태 */}
+        {loading && movies.length > 0 && (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid #333',
+                borderTop: '4px solid #ff6b6b',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto',
+              }}
+            ></div>
+            <style jsx>{`
+              @keyframes spin {
+                0% {
+                  transform: rotate(0deg);
+                }
+                100% {
+                  transform: rotate(360deg);
+                }
+              }
+            `}</style>
+          </div>
+        )}
+
+        {/* 더 이상 로드할 영화가 없을 때 */}
+        {!hasMore && movies.length > 0 && (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            모든 영화를 불러왔습니다.
+          </div>
+        )}
+
+        {/* 영화가 없을 때 */}
+        {!loading && movies.length === 0 && isInitialized && (
+          <div style={{ textAlign: 'center', padding: '100px 20px', color: '#666' }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🎬</div>
+            <div style={{ fontSize: '18px', marginBottom: '10px' }}>영화가 없습니다</div>
+            <div style={{ fontSize: '14px' }}>다른 카테고리를 선택해보세요</div>
           </div>
         )}
       </main>
+
       <SimpleFooter />
     </div>
+  );
+}
+
+export default function WatchaMainPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            minHeight: '100vh',
+            background: '#000',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div>페이지를 로드하는 중...</div>
+        </div>
+      }
+    >
+      <WatchaMainPageContent />
+    </Suspense>
   );
 }
