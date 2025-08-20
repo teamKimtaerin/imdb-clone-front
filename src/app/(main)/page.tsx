@@ -33,6 +33,7 @@ export default function WatchaMainPage() {
     if (process.env.NODE_ENV === 'development') {
       console.log(`useEffect 실행 - 카테고리 변경: [${activeCategories.join(', ')}]`);
     }
+
     loadMovies(1, activeCategories);
   }, [loadMovies, activeCategories]);
 

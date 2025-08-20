@@ -1,9 +1,11 @@
-// src/components/common/Button/Button.tsx
 'use client';
 
-import React from 'react';
-import { watchaTokens } from '@/styles/tokens';
+
+import { useState } from 'react';
 import { ButtonProps } from '@/types/button';
+import { ButtonContent } from './ButtonContent';
+import { getButtonStyles } from './buttonStyles';
+
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
@@ -18,147 +20,21 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...props
 }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
-  const [isPressed, setIsPressed] = React.useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
 
-  // 버튼 변형별 스타일
-  const variants = {
-    primary: {
-      background: isPressed
-        ? watchaTokens.colors.primaryDark
-        : isHovered
-          ? watchaTokens.colors.primaryDark
-          : watchaTokens.colors.primary,
-      color: watchaTokens.colors.text.primary,
-      border: 'none',
-      boxShadow: isHovered ? '0 4px 12px rgba(255, 5, 88, 0.3)' : 'none',
+  const buttonStyle = getButtonStyles(
+    variant,
+    size,
+    { isHovered, isPressed },
+    {
+      rounded,
+      fullWidth,
+      disabled,
+      loading,
+      hasChildren: !!children,
+      style,
     },
-    secondary: {
-      background: isPressed
-        ? watchaTokens.colors.surface
-        : isHovered
-          ? watchaTokens.colors.surfaceHover
-          : 'transparent',
-      color: watchaTokens.colors.primary,
-      border: `2px solid ${watchaTokens.colors.primary}`,
-      boxShadow: 'none',
-    },
-    ghost: {
-      background: isPressed
-        ? watchaTokens.colors.surface
-        : isHovered
-          ? watchaTokens.colors.surfaceHover
-          : 'transparent',
-      color: watchaTokens.colors.text.primary,
-      border: `1px solid ${watchaTokens.colors.border}`,
-      boxShadow: 'none',
-    },
-    text: {
-      background: isPressed
-        ? watchaTokens.colors.surface
-        : isHovered
-          ? watchaTokens.colors.surfaceHover
-          : 'transparent',
-      color: isHovered ? watchaTokens.colors.text.primary : watchaTokens.colors.text.secondary,
-      border: 'none',
-      boxShadow: 'none',
-    },
-    danger: {
-      background: isPressed ? '#dc2626' : isHovered ? '#dc2626' : '#ef4444',
-      color: watchaTokens.colors.text.primary,
-      border: 'none',
-      boxShadow: isHovered ? '0 4px 12px rgba(239, 68, 68, 0.3)' : 'none',
-    },
-  };
-
-  // 버튼 크기별 스타일
-  const sizes = {
-    xs: {
-      padding: rounded ? '6px' : `6px 12px`,
-      fontSize: watchaTokens.typography.fontSize.xs,
-      height: '28px',
-      minWidth: rounded ? '28px' : 'auto',
-    },
-    sm: {
-      padding: rounded ? '8px' : `8px 16px`,
-      fontSize: watchaTokens.typography.fontSize.sm,
-      height: '32px',
-      minWidth: rounded ? '32px' : 'auto',
-    },
-    md: {
-      padding: rounded ? '10px' : `10px 20px`,
-      fontSize: watchaTokens.typography.fontSize.base,
-      height: '40px',
-      minWidth: rounded ? '40px' : 'auto',
-    },
-    lg: {
-      padding: rounded ? '12px' : `12px 24px`,
-      fontSize: watchaTokens.typography.fontSize.lg,
-      height: '48px',
-      minWidth: rounded ? '48px' : 'auto',
-    },
-    xl: {
-      padding: rounded ? '16px' : `16px 32px`,
-      fontSize: watchaTokens.typography.fontSize.xl,
-      height: '56px',
-      minWidth: rounded ? '56px' : 'auto',
-    },
-  };
-
-  const currentVariant = variants[variant];
-  const currentSize = sizes[size];
-
-  const buttonStyle: React.CSSProperties = {
-    ...currentVariant,
-    ...currentSize,
-    width: fullWidth ? '100%' : 'auto',
-    borderRadius: rounded ? '50%' : watchaTokens.borderRadius.pill,
-    fontFamily: watchaTokens.typography.fontFamily,
-    fontWeight: watchaTokens.typography.fontWeight.medium,
-    cursor: disabled || loading ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.5 : 1,
-    transition: 'all 0.2s ease',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: children ? watchaTokens.spacing.sm : 0,
-    position: 'relative',
-    overflow: 'hidden',
-    transform:
-      isPressed && !disabled ? 'scale(0.98)' : isHovered && !disabled ? 'translateY(-1px)' : 'none',
-    userSelect: 'none',
-    ...style,
-  };
-
-  // 로딩 스피너 컴포넌트
-  const LoadingSpinner = () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      style={{
-        animation: 'spin 1s linear infinite',
-      }}
-    >
-      <circle
-        cx="8"
-        cy="8"
-        r="6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeDasharray="28"
-        strokeDashoffset="10"
-      />
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
-    </svg>
   );
 
   return (
@@ -174,15 +50,9 @@ export const Button: React.FC<ButtonProps> = ({
       onMouseUp={() => setIsPressed(false)}
       {...props}
     >
-      {loading && <LoadingSpinner />}
-      {!loading && startIcon && <span style={{ display: 'flex' }}>{startIcon}</span>}
-      {children && <span>{children}</span>}
-      {!loading && endIcon && <span style={{ display: 'flex' }}>{endIcon}</span>}
+      <ButtonContent loading={loading} startIcon={startIcon} endIcon={endIcon} size={size}>
+        {children}
+      </ButtonContent>
     </button>
   );
-};
-
-// 아이콘 버튼 컴포넌트 (편의를 위한 래퍼)
-export const IconButton: React.FC<Omit<ButtonProps, 'rounded'>> = (props) => {
-  return <Button {...props} rounded />;
 };

@@ -1,0 +1,35 @@
+.star-rating {
+  display: flex;
+}
+
+.star {
+  position: relative;
+  display: inline-block;
+  width: 24px; /* adjust as needed */
+  height: 24px;
+  cursor: pointer;
+}
+
+/* 빈 별 */
+.star.empty::before {
+  content: '☆'; /* outline star */
+  font-size: 24px;
+  color: lightgray;
+}
+
+/* 반 별 */
+.star.half::before {
+  content: '★';
+  font-size: 24px;
+  color: #ff2e63;
+  position: absolute;
+  width: 12px;
+  overflow: hidden;
+}
+
+/* 전체 별 */
+.star.full::before {
+  content: '★';
+  font-size: 24px;
+  color: #ff2e63;
+}
