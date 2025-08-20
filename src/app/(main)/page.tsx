@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { MovieCard } from '@/components/movie/MovieCard';
@@ -20,6 +21,7 @@ const categoriesList = [
 ];
 
 export default function WatchaMainPage() {
+  const router = useRouter();
   const { movies, loading, hasMore, loadMovies, loadNextPage } = useMovies();
 
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
@@ -72,6 +74,11 @@ export default function WatchaMainPage() {
       }
     };
   }, [movies]);
+
+  // 영화 카드 클릭 핸들러
+  const handleMovieClick = (movieId: string) => {
+    router.push(`/movie/${movieId}`);
+  };
 
   // 카테고리 클릭
   const handleCategoryClick = (category: string) => {
@@ -166,6 +173,7 @@ export default function WatchaMainPage() {
                 created_at={movie.created_at}
                 __v={movie.__v}
                 rank={movie.rank && activeCategories.length === 0 ? movie.rank : undefined}
+                onClick={() => handleMovieClick(movie._id)}
               />
             );
           })}
