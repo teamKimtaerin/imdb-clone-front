@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ReviewCard } from './ReviewCard';
 import ReviewForm from './ReviewForm';
 import { useReviews } from '@/features/review/hooks/useReviews';
@@ -7,9 +7,14 @@ import { Review } from '@/types/review';
 interface ReviewListProps {
   movieId: string;
   currentUserId?: string;
+  onRatingChange?: (averageRating: number, totalReviews: number) => void; // 평균 rating 변경 콜백 추가
 }
 
-export const ReviewList: React.FC<ReviewListProps> = ({ movieId, currentUserId }) => {
+export const ReviewList: React.FC<ReviewListProps> = ({
+  movieId,
+  currentUserId,
+  onRatingChange,
+}) => {
   const [isWriting, setIsWriting] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
 
@@ -24,6 +29,21 @@ export const ReviewList: React.FC<ReviewListProps> = ({ movieId, currentUserId }
     deleteReview,
     mutationLoading,
   } = useReviews({ movieId });
+
+  // 평균 rating 계산 함수
+  const calculateAverageRating = (reviews: Review[]): number => {
+    if (reviews.length === 0) return 0;
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return Number((totalRating / reviews.length).toFixed(1));
+  };
+
+  // 리뷰 데이터가 변경될 때마다 평균 rating을 부모에게 전달
+  useEffect(() => {
+    if (onRatingChange && reviews.length > 0) {
+      const averageRating = calculateAverageRating(reviews);
+      onRatingChange(averageRating, reviews.length);
+    }
+  }, [reviews, onRatingChange]);
 
   /**
    * 새 리뷰 작성 핸들러
@@ -105,6 +125,12 @@ export const ReviewList: React.FC<ReviewListProps> = ({ movieId, currentUserId }
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-bold">리뷰</h2>
             <span className="text-gray-400">({reviews.length})</span>
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400">★</span>
+                <span className="text-lg font-semibold">{calculateAverageRating(reviews)}</span>
+              </div>
+            )}
           </div>
 
           {currentUserId && !isWriting && !editingReview && (
@@ -159,7 +185,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({ movieId, currentUserId }
           </div>
         )}
 
-        {/* 더보기 버튼 - 데이터가 충분히 많고 더 불러올 데이터가 있을 때만 표시 */}
+        {/* 더보기 버튼 */}
         {!loading && hasMore && reviews.length >= 10 && (
           <div className="text-center pt-8">
             <button

@@ -4,19 +4,25 @@ import React from 'react';
 import { CategoryTag } from '@/components/common/CategoryTag/CategoryTag';
 import { Button } from '@/components/common/Button/Button';
 import { Movie } from '@/types/index';
+import { ReviewList } from '../../Review/ReviewList';
 
 interface MovieDetailProps {
   movie: Movie;
+  reviewRating?: number; // 리뷰에서 계산된 평균 rating
+  reviewCount?: number; // 리뷰 수
 }
 
-// 평균 별점을 계산하는 헬퍼 함수
-const calculateAverageRating = (total: number, count: number): number => {
-  if (count === 0) return 0;
-  return Number((total / count).toFixed(1));
-};
+const MovieDetail: React.FC<MovieDetailProps> = ({ movie, reviewRating = 0, reviewCount = 0 }) => {
+  // 기존 영화 평균 평점 (DB에서 가져온 것)과 실제 리뷰 평균 평점 중 선택
+  // 실제 리뷰가 있으면 리뷰 평균을 사용, 없으면 기존 데이터 사용
+  const calculateAverageRating = (total: number, count: number): number => {
+    if (count === 0) return 0;
+    return Number((total / count).toFixed(1));
+  };
 
-const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
-  const averageRating = calculateAverageRating(movie.rating_total, movie.review_count);
+  const displayRating =
+    reviewCount > 0 ? reviewRating : calculateAverageRating(movie.rating_total, movie.review_count);
+  const displayReviewCount = reviewCount > 0 ? reviewCount : movie.review_count;
 
   return (
     <div className="text-white">
@@ -79,7 +85,8 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
               <div className="flex items-center gap-8 mb-6">
                 <div className="flex items-center gap-2">
                   <span className="text-yellow-400 text-2xl">★</span>
-                  <span className="text-2xl font-bold">{averageRating}</span>
+                  <span className="text-2xl font-bold">{displayRating}</span>
+                  <span className="text-gray-400 text-sm">({displayReviewCount}명 평가)</span>
                 </div>
                 <div className="text-gray-300">관객 {movie.audience.toLocaleString()}명</div>
               </div>
@@ -96,7 +103,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
                   variant="secondary"
                   className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-full"
                 >
-                  ★ 평가하기
+                  ☆ 평가하기
                 </Button>
               </div>
 
@@ -122,7 +129,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
                 </button>
                 <button className="flex flex-col items-center gap-1 text-gray-300 hover:text-white transition-colors">
                   <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-                    📤
+                    🔤
                   </div>
                   <span>공유</span>
                 </button>
@@ -208,19 +215,19 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
         </div>
       </div>
 
-      {/* 왓챠피디어 사용자 평점 섹션 */}
+      {/* 왓챠피디아 사용자 평점 섹션 */}
       <div className="container mx-auto px-6 py-12 max-w-6xl border-t border-gray-800">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold">왓챠피디아 사용자 평</h2>
-          <span className="text-gray-400">{movie.review_count.toLocaleString()}+</span>
+          <span className="text-gray-400">{displayReviewCount.toLocaleString()}+</span>
         </div>
 
         <div className="flex items-center gap-4 mb-8">
           <div className="flex items-center gap-2">
             <span className="text-yellow-400 text-4xl">★</span>
-            <span className="text-4xl font-bold">{averageRating}</span>
+            <span className="text-4xl font-bold">{displayRating}</span>
           </div>
-          <div className="text-gray-400">{movie.review_count}명이 평가</div>
+          <div className="text-gray-400">{displayReviewCount}명이 평가</div>
         </div>
 
         <div className="flex flex-wrap gap-4">
@@ -234,7 +241,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie }) => {
             variant="secondary"
             className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-full"
           >
-            ★ 별점 평가하기
+            ☆ 별점 평가하기
           </Button>
           <button className="text-pink-400 hover:text-pink-300 px-4 py-2">← 보고싶어요</button>
           <button className="text-pink-400 hover:text-pink-300 px-4 py-2">⭐ 평가하기</button>

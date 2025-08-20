@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import useMovie from '@/hooks/useMovie';
 import MovieDetail from '@/components/movie/MovieDetail/MovieDetail';
@@ -17,6 +17,16 @@ const MovieDetailPage: React.FC = () => {
   // const { user } = useAuth();
   // const currentUserId = user?.id;
   const currentUserId = 'current-user-id'; // 임시 사용자 ID
+
+  // 리뷰에서 계산된 평균 rating과 리뷰 수를 상태로 관리
+  const [reviewRating, setReviewRating] = useState<number>(0);
+  const [reviewCount, setReviewCount] = useState<number>(0);
+
+  // ReviewList에서 평균 rating이 변경될 때 호출되는 콜백
+  const handleRatingChange = (averageRating: number, totalReviews: number) => {
+    setReviewRating(averageRating);
+    setReviewCount(totalReviews);
+  };
 
   const handleMenuClick = (menu: string) => {
     console.log(`메뉴 클릭: ${menu}`);
@@ -74,12 +84,16 @@ const MovieDetailPage: React.FC = () => {
     <div className="min-h-screen bg-black">
       <NavigationBar activeMenu="홈" onMenuClick={handleMenuClick} onSearch={handleSearch} />
 
-      {/* 영화 상세 정보 */}
-      <MovieDetail movie={movie} />
+      {/* 영화 상세 정보 - 리뷰 평점 데이터 전달 */}
+      <MovieDetail movie={movie} reviewRating={reviewRating} reviewCount={reviewCount} />
 
       {/* 리뷰 섹션 */}
       <div className="border-t border-gray-800">
-        <ReviewList movieId={id} currentUserId={currentUserId} />
+        <ReviewList
+          movieId={id}
+          currentUserId={currentUserId}
+          onRatingChange={handleRatingChange}
+        />
       </div>
     </div>
   );
