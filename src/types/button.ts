@@ -1,10 +1,14 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
+// type 키워드 사용 (interface가 아닌)
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'text' | 'danger';
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'; // 'lg' 뒤 세미콜론 제거, 'xl' 추가
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** 버튼 변형 스타일 */
-  variant?: 'primary' | 'secondary' | 'ghost' | 'text' | 'danger';
+  variant?: ButtonVariant; // 직접 타입 참조
   /** 버튼 크기 */
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: ButtonSize; // 직접 타입 참조
   /** 전체 너비 사용 */
   fullWidth?: boolean;
   /** 로딩 상태 */
