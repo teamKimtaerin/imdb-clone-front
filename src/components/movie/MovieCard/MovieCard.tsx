@@ -5,6 +5,7 @@ import React, { useState, forwardRef } from 'react';
 import Image from 'next/image';
 import { watchaTokens } from '@/styles/tokens';
 import { MovieCardProps } from '@/types/movieCardProps';
+import { StarRating } from '@/components/common/StarRating/StarRating';
 
 export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
   (
@@ -111,33 +112,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       fontSize: watchaTokens.typography.fontSize.xs,
     };
 
-    const ratingStyle: React.CSSProperties = {
-      color: watchaTokens.colors.rating,
-      fontSize: watchaTokens.typography.fontSize.xs,
-      display: 'flex',
-      alignItems: 'center',
-      gap: '2px',
-    };
-
     const averageRating = review_count > 0 ? rating_total / review_count : 0;
-    const calculatedRating = Math.round(averageRating * 2) / 2;
-
-    const renderStars = (ratingValue: number) => {
-      const stars = [];
-      const fullStars = Math.floor(ratingValue);
-      const hasHalfStar = ratingValue % 1 === 0.5;
-
-      for (let i = 0; i < 5; i++) {
-        if (i < fullStars) {
-          stars.push('★');
-        } else if (i === fullStars && hasHalfStar) {
-          stars.push('⭐');
-        } else {
-          stars.push('☆');
-        }
-      }
-      return stars.join('');
-    };
 
     const hoverInfoStyle: React.CSSProperties = {
       background: 'rgba(0, 0, 0, 0.6)',
@@ -207,9 +182,16 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
                     fontSize: watchaTokens.typography.fontSize.xs,
                     color: watchaTokens.colors.text.secondary,
                     marginTop: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
-                  평점 ★ {averageRating.toFixed(1)} ({review_count}명)
+                  <span>평점</span>
+                  <StarRating value={averageRating} readonly size="sm" />
+                  <span>
+                    {averageRating.toFixed(1)} ({review_count}명)
+                  </span>
                 </div>
               </div>
             )}
@@ -243,7 +225,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
         <div style={titleStyle}>{title}</div>
         <div style={infoStyle}>
           <span style={yearStyle}>{new Date(release_date).getFullYear()}</span>
-          <span style={ratingStyle}>{renderStars(calculatedRating)}</span>
+          <StarRating value={averageRating} readonly size="sm" />
         </div>
       </div>
     );
