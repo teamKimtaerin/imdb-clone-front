@@ -1,37 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseInfiniteScrollOptions<T> {
-  /**
-   * 데이터를 가져오는 함수
-   * @param page 현재 페이지 번호
-   * @returns Promise<{ data: T[], hasMore: boolean }>
-   */
   fetchData: (page: number) => Promise<{ data: T[]; hasMore: boolean }>;
-
-  /** 초기 로드 여부 */
   enabled?: boolean;
-
-  /** 스크롤 임계값 (px) - 페이지 하단에서 얼마나 떨어진 지점에서 로드할지 */
   threshold?: number;
+  resetKey?: string | number;
 }
 
 interface UseInfiniteScrollReturn<T> {
-  /** 누적된 모든 데이터 */
   data: T[];
-
-  /** 로딩 상태 */
   loading: boolean;
-
-  /** 에러 상태 */
   error: string | null;
-
-  /** 더 많은 데이터가 있는지 여부 */
   hasMore: boolean;
-
-  /** 수동으로 더 많은 데이터 로드 */
+  isInitialized: boolean;
   loadMore: () => void;
-
-  /** 데이터 새로고침 (처음부터 다시 로드) */
   refresh: () => void;
 }
 
@@ -39,6 +21,7 @@ export function useInfiniteScroll<T>({
   fetchData,
   enabled = true,
   threshold = 100,
+  resetKey,
 }: UseInfiniteScrollOptions<T>): UseInfiniteScrollReturn<T> {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,37 +30,54 @@ export function useInfiniteScroll<T>({
   const [currentPage, setCurrentPage] = useState(1);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // useRef로 최신 상태값들을 추적 (스크롤 이벤트에서 클로저 문제 해결)
-  const loadingRef = useRef(loading);
-  const hasMoreRef = useRef(hasMore);
-  const currentPageRef = useRef(currentPage);
+  // ref로 최신 값들 추적
+  const isLoadingRef = useRef(false);
+  const fetchDataRef = useRef(fetchData);
+  const currentResetKeyRef = useRef(resetKey);
 
-  // ref 값들을 최신으로 유지
+  // fetchData ref 업데이트
   useEffect(() => {
-    loadingRef.current = loading;
-    hasMoreRef.current = hasMore;
-    currentPageRef.current = currentPage;
-  }, [loading, hasMore, currentPage]);
+    fetchDataRef.current = fetchData;
+  }, [fetchData]);
 
-  /**
-   * 데이터 로드 함수 - 의존성 배열에서 loading 제거하여 무한 리렌더링 방지
-   */
+  // resetKey 변경 감지 및 초기화
+  useEffect(() => {
+    if (resetKey !== currentResetKeyRef.current) {
+      currentResetKeyRef.current = resetKey;
+      if (isInitialized) {
+        setData([]);
+        setCurrentPage(1);
+        setHasMore(true);
+        setError(null);
+        setIsInitialized(false);
+        isLoadingRef.current = false;
+      }
+    }
+  }, [resetKey, isInitialized]);
+
+  // 데이터 로드 함수
   const loadData = useCallback(
     async (page: number, isRefresh = false) => {
-      // 이미 로딩 중이거나, 더 이상 데이터가 없으면 중단
-      if (loadingRef.current || (!isRefresh && !hasMoreRef.current)) return;
+      if (isLoadingRef.current) {
+        console.log('🚫 Already loading, skipping request');
+        return;
+      }
+
+      if (!isRefresh && !hasMore) {
+        console.log('🚫 No more data, skipping request');
+        return;
+      }
 
       try {
+        console.log('🔄 Starting load data for page:', page);
+        isLoadingRef.current = true;
         setLoading(true);
         setError(null);
 
-        const result = await fetchData(page);
+        const result = await fetchDataRef.current(page);
+        console.log('✅ Load data result:', result);
 
-        setData((prevData) => {
-          // 새로고침인 경우 기존 데이터를 교체, 아니면 추가
-          return isRefresh ? result.data : [...prevData, ...result.data];
-        });
-
+        setData((prevData) => (isRefresh ? result.data : [...prevData, ...result.data]));
         setHasMore(result.hasMore);
         setCurrentPage(page);
 
@@ -85,97 +85,88 @@ export function useInfiniteScroll<T>({
           setIsInitialized(true);
         }
       } catch (err) {
+        console.error('❌ Load data error:', err);
         setError(err instanceof Error ? err.message : '데이터 로드 중 오류가 발생했습니다.');
-        // 에러 발생시 hasMore를 false로 설정하여 추가 로딩 방지
         setHasMore(false);
       } finally {
+        isLoadingRef.current = false;
         setLoading(false);
+        console.log('🏁 Load data finished');
       }
     },
-    [fetchData, isInitialized], // loading 제거
+    [hasMore, isInitialized],
   );
 
-  /**
-   * 더 많은 데이터 로드
-   */
+  // 더 많은 데이터 로드
   const loadMore = useCallback(() => {
-    if (hasMoreRef.current && !loadingRef.current) {
-      loadData(currentPageRef.current + 1);
+    if (hasMore && !isLoadingRef.current) {
+      loadData(currentPage + 1);
     }
-  }, [loadData]);
+  }, [hasMore, currentPage, loadData]);
 
-  /**
-   * 데이터 새로고침
-   */
+  // 새로고침
   const refresh = useCallback(() => {
+    console.log('🔄 Refresh called');
     setData([]);
     setCurrentPage(1);
     setHasMore(true);
+    setError(null);
     setIsInitialized(false);
-    loadData(1, true);
+    isLoadingRef.current = false;
+
+    // 다음 틱에서 실행
+    setTimeout(() => {
+      loadData(1, true);
+    }, 0);
   }, [loadData]);
 
-  /**
-   * 스크롤 이벤트 핸들러 - 디바운싱 적용
-   */
-  const handleScroll = useCallback(() => {
-    if (!hasMoreRef.current || loadingRef.current) return;
-
-    const scrollHeight = document.documentElement.scrollHeight;
-    const scrollTop = document.documentElement.scrollTop;
-    const clientHeight = document.documentElement.clientHeight;
-
-    // 페이지 하단에서 threshold만큼 떨어진 지점에 도달하면 로드
-    if (scrollTop + clientHeight >= scrollHeight - threshold) {
-      loadMore();
-    }
-  }, [threshold, loadMore]);
-
-  // 디바운싱을 위한 타이머 ref
-  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  /**
-   * 디바운싱된 스크롤 핸들러
-   */
-  const debouncedHandleScroll = useCallback(() => {
-    if (scrollTimerRef.current) {
-      clearTimeout(scrollTimerRef.current);
-    }
-    scrollTimerRef.current = setTimeout(handleScroll, 100);
-  }, [handleScroll]);
-
-  /**
-   * 초기 데이터 로드
-   */
+  // 초기 로드 - 한 번만 실행되도록 조건 강화
   useEffect(() => {
-    if (enabled && !isInitialized && data.length === 0 && !loading) {
+    console.log('🎯 Initial load effect:', {
+      enabled,
+      isInitialized,
+      dataLength: data.length,
+      loading,
+    });
+
+    if (enabled && !isInitialized && data.length === 0 && !loading && !isLoadingRef.current) {
+      console.log('🚀 Triggering initial load');
       loadData(1, true);
     }
-  }, [enabled, isInitialized, data.length, loading, loadData]);
+  }, [enabled]); // 최소한의 dependency
 
-  /**
-   * 스크롤 이벤트 리스너 등록/해제
-   */
+  // 스크롤 이벤트
   useEffect(() => {
     if (!enabled || !isInitialized) return;
 
-    // 스크롤 이벤트 리스너 등록 (디바운싱 적용)
-    window.addEventListener('scroll', debouncedHandleScroll, { passive: true });
+    const handleScroll = () => {
+      if (!hasMore || isLoadingRef.current) return;
 
-    // 클린업 함수: 컴포넌트 언마운트 시 이벤트 리스너 제거 및 타이머 정리
-    return () => {
-      window.removeEventListener('scroll', debouncedHandleScroll);
-      if (scrollTimerRef.current) {
-        clearTimeout(scrollTimerRef.current);
+      const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - threshold) {
+        loadMore();
       }
     };
-  }, [enabled, isInitialized, debouncedHandleScroll]);
+
+    let timeoutId: NodeJS.Timeout;
+    const debouncedScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleScroll, 100);
+    };
+
+    window.addEventListener('scroll', debouncedScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', debouncedScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [enabled, isInitialized, hasMore, threshold, loadMore]);
 
   return {
     data,
     loading,
     error,
     hasMore,
+    isInitialized,
     loadMore,
     refresh,
   };

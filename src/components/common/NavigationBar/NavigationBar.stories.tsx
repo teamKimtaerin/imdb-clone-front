@@ -1,61 +1,99 @@
 // src/components/common/NavigationBar/NavigationBar.stories.tsx
 import { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { NavigationBar } from './NavigationBar';
 
-// 임시로 간단한 NavigationBar 컴포넌트 정의
-const SimpleNavigationBar = () => {
-  return (
-    <nav
-      style={{
-        background: '#000',
-        padding: '16px',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '20px',
-      }}
-    >
-      <div style={{ color: '#ff0558', fontSize: '24px', fontWeight: 'bold' }}>WATCHA</div>
-      <div style={{ display: 'flex', gap: '16px' }}>
-        <span>홈</span>
-        <span>탐색</span>
-      </div>
-      <input
-        type="text"
-        placeholder="검색..."
-        style={{
-          marginLeft: 'auto',
-          padding: '8px 16px',
-          borderRadius: '20px',
-          border: 'none',
-          background: '#1c1c1c',
-          color: '#fff',
-        }}
-      />
-      <button
-        style={{
-          padding: '8px 16px',
-          background: '#ff0558',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '20px',
-          cursor: 'pointer',
-        }}
-      >
-        로그인
-      </button>
-    </nav>
-  );
-};
-
-const meta: Meta = {
-  title: 'Navigation/NavigationBar',
-  component: SimpleNavigationBar,
+const meta = {
+  title: 'Common/NavigationBar',
+  component: NavigationBar,
   parameters: {
     layout: 'fullscreen',
+    backgrounds: {
+      default: 'dark',
+      values: [
+        { name: 'dark', value: '#000' },
+        { name: 'light', value: '#fff' },
+      ],
+    },
   },
-};
+  argTypes: {
+    activeMenu: {
+      control: 'select',
+      options: ['홈', '탐색', '평가', '보고싶어요', '프로필'],
+      description: '현재 활성화된 메뉴',
+    },
+  },
+} satisfies Meta<typeof NavigationBar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: {
+    activeMenu: '홈',
+    onSearch: (query) => {
+      console.log('Search:', query);
+    },
+    onMenuClick: (menu) => {
+      console.log('Menu clicked:', menu);
+    },
+  },
+};
+
+export const SearchFocused: Story = {
+  args: {
+    activeMenu: '홈',
+    onSearch: (query) => {
+      console.log('Search:', query);
+    },
+    onMenuClick: (menu) => {
+      console.log('Menu clicked:', menu);
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = canvasElement;
+    const searchInput = canvas.querySelector('input[type="text"]') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.focus();
+    }
+  },
+};
+
+export const WithSearchResults: Story = {
+  args: {
+    activeMenu: '탐색',
+    onSearch: (query) => {
+      console.log('Search:', query);
+    },
+    onMenuClick: (menu) => {
+      console.log('Menu clicked:', menu);
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = canvasElement;
+    const searchInput = canvas.querySelector('input[type="text"]') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.value = '인터';
+      // 입력 이벤트 발생시키기
+      const event = new Event('input', { bubbles: true });
+      searchInput.dispatchEvent(event);
+    }
+  },
+};
+
+export const Mobile: Story = {
+  args: {
+    activeMenu: '홈',
+    onSearch: (query) => {
+      console.log('Search:', query);
+    },
+    onMenuClick: (menu) => {
+      console.log('Menu clicked:', menu);
+    },
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
+  },
+};

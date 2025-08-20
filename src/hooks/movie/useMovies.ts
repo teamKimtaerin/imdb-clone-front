@@ -4,12 +4,21 @@ import { Movie } from '@/types/movie';
 import { MoviesApiResponse } from '@/types/api';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 const ITEMS_PER_PAGE = Number(process.env.NEXT_PUBLIC_ITEMS_PER_PAGE) || 20;
 
-// 영화 데이터 검증 함수
+// 디버깅용 로그
+if (process.env.NODE_ENV === 'development') {
+  console.log('Environment variables:', {
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    API_BASE_URL,
+    ITEMS_PER_PAGE,
+  });
+}
+
+// 영화 데이터 검증 함수 - 백엔드 최신 구조에 맞게 복원
 const validateMovieData = (movie: any): movie is Movie => {
-  return (
+  const isValid =
     typeof movie === 'object' &&
     movie !== null &&
     typeof movie._id === 'string' &&
@@ -21,15 +30,24 @@ const validateMovieData = (movie: any): movie is Movie => {
     typeof movie.review_count === 'number' &&
     typeof movie.audience === 'number' &&
     typeof movie.description === 'string' &&
-    typeof movie.director === 'object' &&
+    typeof movie.director === 'object' && // 백엔드가 객체로 업데이트됨
     movie.director !== null &&
     typeof movie.director.name === 'string' &&
     typeof movie.age_rating === 'string' &&
-    typeof movie.is_adult_content === 'boolean'
-  );
+    typeof movie.is_adult_content === 'boolean'; // 백엔드에 추가됨
+
+  if (process.env.NODE_ENV === 'development' && !isValid) {
+    console.log('Invalid movie data:', movie);
+  }
+
+  return isValid;
 };
 
 export function useMovies() {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('useMovies hook called'); // 디버깅용
+  }
+
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -41,8 +59,11 @@ export function useMovies() {
 
   const loadMovies = useCallback(
     async (pageNum: number = 1, categories: string[] = [], append: boolean = false) => {
+      console.log('🎬 loadMovies called with:', { pageNum, categories, append }); // 디버깅용
+
       // 이미 로딩 중이면 중복 요청 방지
       if (loadingRef.isLoading) {
+        console.log('🚫 Already loading, skipping request'); // 디버깅용
         return;
       }
 
@@ -50,8 +71,12 @@ export function useMovies() {
       setLoading(true);
       setError(null); // 새로운 요청 시 에러 초기화
 
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Loading movies with:', { pageNum, categories, append }); // 디버깅용
+      }
+
       try {
-        let url = `${API_BASE_URL}/movies?page=${pageNum}&limit=${ITEMS_PER_PAGE}`;
+        let url = `${API_BASE_URL}/api/movies?page=${pageNum}&limit=${ITEMS_PER_PAGE}`;
 
         if (categories.length > 0) {
           // 카테고리 필터링: 선택된 카테고리의 영화들을 가져옴
@@ -59,6 +84,10 @@ export function useMovies() {
         } else {
           // 인기 영화: 평점과 최신순의 가중치로 정렬
           url += `&sort=popular`;
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('API URL:', url); // 디버깅용
         }
 
         const response = await axios.get<MoviesApiResponse | Movie[]>(url);
@@ -151,7 +180,7 @@ export function useMovies() {
         setLoading(false);
       }
     },
-    [], // dependency 제거 - setState 함수들은 stable하므로
+    [loadingRef], // loadingRef를 dependency에 추가
   );
 
   const loadNextPage = useCallback(
@@ -164,6 +193,91 @@ export function useMovies() {
     [page, hasMore, loading, loadMovies],
   );
 
+  const loadMoviesByIds = useCallback(
+    async (movieIds: string[]) => {
+      if (!movieIds || movieIds.length === 0) {
+        setMovies([]);
+        return;
+      }
+
+      // 이미 로딩 중이면 중복 요청 방지
+      if (loadingRef.isLoading) {
+        return;
+      }
+
+      loadingRef.isLoading = true;
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Loading movies by IDs:', movieIds);
+        }
+
+        // 각 영화 ID에 대해 개별 API 호출
+        const moviePromises = movieIds.map(async (id) => {
+          try {
+            const url = `${API_BASE_URL}/api/movies/${id}`;
+            const response = await axios.get<Movie>(url);
+            return response.data;
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`Failed to load movie with ID ${id}:`, error);
+            }
+            return null; // 실패한 경우 null 반환
+          }
+        });
+
+        const movieResults = await Promise.all(moviePromises);
+
+        // null이 아닌 영화들만 필터링
+        const validMovieResults = movieResults.filter((movie): movie is Movie => movie !== null);
+
+        // 데이터 검증
+        const validMovies = validMovieResults.filter(validateMovieData);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Loaded ${validMovies.length} movies out of ${movieIds.length} requested`);
+          if (validMovies.length !== validMovieResults.length) {
+            console.warn(
+              `${validMovieResults.length - validMovies.length}개의 잘못된 영화 데이터가 제외되었습니다.`,
+            );
+          }
+        }
+
+        setMovies(validMovies);
+        setPage(1);
+        setHasMore(false); // ID로 검색할 때는 페이지네이션 없음
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('영화 ID로 로드 실패:', err);
+        }
+
+        let errorMessage = '영화를 불러오는 중 오류가 발생했습니다.';
+
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) {
+            errorMessage = '요청한 영화를 찾을 수 없습니다.';
+          } else if (err.response?.status === 500) {
+            errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+          } else if (err.code === 'NETWORK_ERROR') {
+            errorMessage = '네트워크 연결을 확인해주세요.';
+          } else if (err.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          }
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+
+        setError(errorMessage);
+      } finally {
+        loadingRef.isLoading = false;
+        setLoading(false);
+      }
+    },
+    [loadingRef], // loadingRef를 dependency에 추가
+  );
+
   return {
     movies,
     loading,
@@ -171,6 +285,7 @@ export function useMovies() {
     error,
     loadMovies,
     loadNextPage,
+    loadMoviesByIds,
     setMovies,
     setPage,
     setHasMore,

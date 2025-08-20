@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Review, ReviewFormData } from '@/types/review';
 import { ReviewApiService } from '../services/reviewApi';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -48,6 +48,7 @@ interface UseReviewsReturn {
 
 export function useReviews({ movieId, enabled = true }: UseReviewsOptions): UseReviewsReturn {
   const [mutationLoading, setMutationLoading] = useState(false);
+  const prevMovieIdRef = useRef(movieId);
 
   /**
    * 무한 스크롤을 위한 데이터 fetch 함수
@@ -63,22 +64,28 @@ export function useReviews({ movieId, enabled = true }: UseReviewsOptions): UseR
     [movieId],
   );
 
-  // 무한 스크롤 훅 사용
+  // 무한 스크롤 훅 사용 - resetKey 제거
   const {
     data: reviews,
     loading,
     error,
     hasMore,
+    isInitialized,
     loadMore,
     refresh,
   } = useInfiniteScroll({
     fetchData: fetchReviews,
     enabled,
-    threshold: 200, // 페이지 하단 200px 지점에서 로드
+    threshold: 200,
   });
 
-  // 초기화 상태 계산 - 첫 API 호출이 완료된 상태
-  const isInitialized = !loading || reviews.length > 0;
+  // movieId 변경 감지하여 수동으로 refresh 호출
+  useEffect(() => {
+    if (movieId !== prevMovieIdRef.current) {
+      prevMovieIdRef.current = movieId;
+      refresh();
+    }
+  }, [movieId, refresh]);
 
   /**
    * 새 리뷰 작성
