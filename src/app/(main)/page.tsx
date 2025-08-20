@@ -133,9 +133,10 @@ export default function WatchaMainPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
             gap: '20px 12px',
             marginBottom: '40px',
+            justifyContent: 'center',
           }}
         >
           {filteredMovies.map((movie, index) => {
