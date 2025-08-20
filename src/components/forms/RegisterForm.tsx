@@ -12,11 +12,15 @@ const RegisterForm = () => {
     password: '',
     confirmPassword: '',
     nickname: '',
+    verificationCode: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,10 +47,68 @@ const RegisterForm = () => {
     return null;
   };
 
+  const handleSendVerification = async () => {
+    if (!formData.email) {
+      setError('이메일을 먼저 입력해주세요.');
+      return;
+    }
+
+    setVerificationLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post('/api/auth/send-verification', {
+        email: formData.email,
+      });
+
+      if (response.data.success) {
+        setEmailVerificationSent(true);
+        setError('');
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || '인증 이메일 전송에 실패했습니다.');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!formData.verificationCode) {
+      setError('인증 코드를 입력해주세요.');
+      return;
+    }
+
+    setVerificationLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post('/api/auth/verify-code', {
+        email: formData.email,
+        code: formData.verificationCode,
+      });
+
+      if (response.data.success) {
+        setEmailVerified(true);
+        setError('');
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || '인증 코드가 올바르지 않습니다.');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // 이메일 인증 확인
+    if (!emailVerified) {
+      setError('이메일 인증을 완료해주세요.');
+      setLoading(false);
+      return;
+    }
 
     // 비밀번호 확인
     if (formData.password !== formData.confirmPassword) {
@@ -64,7 +126,7 @@ const RegisterForm = () => {
     }
 
     try {
-      const { confirmPassword, ...registerData } = formData;
+      const { confirmPassword, verificationCode, ...registerData } = formData;
       const response = await axios.post('/api/auth/register', registerData);
 
       if (response.data.success) {
@@ -104,6 +166,18 @@ const RegisterForm = () => {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
+          </div>
+        )}
+
+        {emailVerificationSent && !emailVerified && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+            인증 이메일이 전송되었습니다. 이메일을 확인하고 인증 코드를 입력해주세요.
+          </div>
+        )}
+
+        {emailVerified && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+            이메일 인증이 완료되었습니다! 회원가입을 계속 진행해주세요.
           </div>
         )}
 
@@ -167,12 +241,63 @@ const RegisterForm = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                className={`w-full pl-11 ${emailVerified ? 'pr-4' : 'pr-24'} py-3 border ${emailVerified ? 'border-green-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-gray-900 placeholder-gray-500`}
                 placeholder="이메일을 입력하세요"
                 required
+                disabled={emailVerified}
               />
+              {!emailVerified && (
+                <button
+                  type="button"
+                  onClick={handleSendVerification}
+                  disabled={verificationLoading || !formData.email}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs bg-pink-500 text-white rounded hover:bg-pink-600 disabled:bg-gray-300 transition-colors"
+                >
+                  {verificationLoading ? '전송중...' : emailVerificationSent ? '재전송' : '인증'}
+                </button>
+              )}
+              {emailVerified && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                  ✓
+                </div>
+              )}
             </div>
           </div>
+
+          {emailVerificationSent && !emailVerified && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">인증 코드</label>
+              <div className="relative">
+                <Image
+                  src="/auth/lock.png"
+                  alt="Code"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+                  width={20}
+                  height={20}
+                />
+                <input
+                  type="text"
+                  name="verificationCode"
+                  value={formData.verificationCode}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-20 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                  placeholder="인증 코드를 입력하세요"
+                  maxLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyCode}
+                  disabled={verificationLoading || !formData.verificationCode}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs bg-pink-500 text-white rounded hover:bg-pink-600 disabled:bg-gray-300 transition-colors"
+                >
+                  {verificationLoading ? '확인중...' : '확인'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                이메일로 전송된 6자리 인증 코드를 입력하세요
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
