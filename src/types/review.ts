@@ -51,3 +51,24 @@ export interface UseInfiniteScrollReturn {
   loadMore: () => void;
   refresh: () => void;
 }
+
+export interface ReviewCardProps {
+  review: Review;
+  currentUserId?: string;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  deleteLoading?: boolean;
+}
+
+export interface ReviewFormProps {
+  isEditing?: boolean;
+  initialData?: ReviewFormData;
+  onSubmit: (data: ReviewFormData) => void;
+  onCancel: () => void;
+  loading?: boolean;
+}
+
+export interface ReviewListProps {
+  movieId: string;
+  currentUserId?: string;
+}
