@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { MovieCard } from '@/components/movie/MovieCard';
@@ -20,18 +20,50 @@ const categoriesList = [
 ];
 
 export default function WatchaMainPage() {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('WatchaMainPage component rendered'); // 디버깅용
+  }
+
   const { movies, loading, hasMore, loadMovies, loadNextPage } = useMovies();
 
+  if (process.env.NODE_ENV === 'development') {
+    console.log('useMovies returned:', { movies: movies.length, loading, hasMore }); // 디버깅용
+  }
+
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastMovieRef = useRef<HTMLDivElement | null>(null);
 
-  // 초기 로드
+  // 초기 로드 - 간단한 useEffect로 변경
   useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('useEffect triggered, loading movies with categories:', activeCategories); // 디버깅용
+    }
+
+    // API 서버가 실행되지 않은 경우를 위한 임시 테스트
+    const testApiCall = async () => {
+      try {
+        console.log('Testing direct API call...');
+        const response = await fetch(
+          'http://localhost:4000/api/movies?page=1&limit=5&sort=popular',
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Direct API call result:', data);
+      } catch (error) {
+        console.error('Direct API call failed:', error);
+        console.log('API 서버가 실행되지 않았습니다. API 서버를 시작해주세요.');
+      }
+    };
+
+    testApiCall();
     loadMovies(1, activeCategories);
-  }, [loadMovies, activeCategories]);
+  }, []); // 빈 dependency 배열로 한 번만 실행
 
   // 무한 스크롤 Observer
   useEffect(() => {
@@ -71,10 +103,10 @@ export default function WatchaMainPage() {
     );
   };
 
-  // 검색 필터
-  const filteredMovies = searchQuery
-    ? movies.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : movies;
+  // 검색은 NavigationBar에서 처리하므로 더미 함수
+  const handleSearch = (_query: string) => {
+    // 검색은 NavigationBar에서 URL 변경으로 처리됨
+  };
 
   return (
     <div
@@ -87,7 +119,7 @@ export default function WatchaMainPage() {
       }}
     >
       <header style={{ position: 'sticky', top: 0, zIndex: 100, background: '#000' }}>
-        <NavigationBar onSearch={setSearchQuery} />
+        <NavigationBar onSearch={handleSearch} />
         <div
           style={{
             padding: '16px 24px',
@@ -95,8 +127,8 @@ export default function WatchaMainPage() {
             background: '#0a0a0a',
             display: 'flex',
             gap: '8px',
-            overflowX: 'auto',
-            paddingBottom: '8px',
+            flexWrap: 'wrap',
+            paddingBottom: '16px',
           }}
         >
           {categoriesList.map((category) => (
@@ -128,13 +160,14 @@ export default function WatchaMainPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
             gap: '20px 12px',
             marginBottom: '40px',
+            justifyContent: 'center',
           }}
         >
-          {filteredMovies.map((movie, index) => {
-            const isLastItem = index === filteredMovies.length - 1;
+          {movies.map((movie, index) => {
+            const isLastItem = index === movies.length - 1;
             return (
               <MovieCard
                 key={movie._id}
@@ -150,6 +183,7 @@ export default function WatchaMainPage() {
                 trailer_url={movie.trailer_url}
                 description={movie.description}
                 director={movie.director}
+                is_adult_content={movie.is_adult_content}
                 poster_url={movie.poster_url}
                 age_rating={movie.age_rating}
                 created_at={movie.created_at}
@@ -165,12 +199,12 @@ export default function WatchaMainPage() {
             영화를 불러오는 중...
           </div>
         )}
-        {!hasMore && filteredMovies.length > 0 && (
+        {!hasMore && movies.length > 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
             모든 영화를 불러왔습니다
           </div>
         )}
-        {filteredMovies.length === 0 && !loading && (
+        {movies.length === 0 && !loading && (
           <div
             style={{ textAlign: 'center', padding: '100px 20px', color: '#666', fontSize: '16px' }}
           >
@@ -178,7 +212,6 @@ export default function WatchaMainPage() {
           </div>
         )}
       </main>
-
       <SimpleFooter />
     </div>
   );

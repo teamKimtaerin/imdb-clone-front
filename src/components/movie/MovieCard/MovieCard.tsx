@@ -18,7 +18,8 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       audience: _audience = 0,
       trailer_url: _trailerUrl,
       description: _description = '',
-      director = '',
+      director = { name: '', profile_image: '' },
+      is_adult_content = false,
       poster_url,
       age_rating = 'ALL',
       created_at: _createdAt,
@@ -52,6 +53,16 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       overflow: 'hidden',
     };
 
+    const blurOverlayStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backdropFilter: is_adult_content ? 'blur(8px)' : 'none',
+      zIndex: 1,
+    };
+
     const overlayStyle: React.CSSProperties = {
       position: 'absolute',
       top: 0,
@@ -64,6 +75,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       justifyContent: 'flex-end',
       padding: watchaTokens.spacing.md,
       transition: 'background 0.3s ease',
+      zIndex: 2,
     };
 
     const adultBadgeStyle: React.CSSProperties = {
@@ -76,7 +88,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       borderRadius: watchaTokens.borderRadius.sm,
       fontSize: watchaTokens.typography.fontSize.xs,
       fontWeight: watchaTokens.typography.fontWeight.bold,
-      zIndex: 2,
+      zIndex: 3,
       backdropFilter: 'blur(4px)',
     };
 
@@ -110,20 +122,25 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
       gap: '2px',
     };
 
-    // 평점: rating_total이 이미 평균 평점값
-    const calculatedRating = rating_total || 0;
+    // 평균 별점 계산: rating_total / review_count
+    const averageRating = review_count > 0 ? rating_total / review_count : 0;
+    // 0.5 단위로 반올림
+    const calculatedRating = Math.round(averageRating * 2) / 2;
 
     const renderStars = (ratingValue: number) => {
       const stars = [];
       const fullStars = Math.floor(ratingValue);
-      const hasHalfStar = ratingValue % 1 !== 0;
+      const hasHalfStar = ratingValue % 1 === 0.5;
 
       for (let i = 0; i < 5; i++) {
         if (i < fullStars) {
+          // 완전한 별
           stars.push('★');
         } else if (i === fullStars && hasHalfStar) {
-          stars.push('☆');
+          // 반 별 (유니코드 반별 문자 사용)
+          stars.push('⭐');
         } else {
+          // 빈 별
           stars.push('☆');
         }
       }
@@ -146,6 +163,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
         onClick={onClick}
       >
         <div style={imageContainerStyle}>
+          {is_adult_content && <div style={blurOverlayStyle}></div>}
           {rank && (
             <div
               style={{
@@ -159,13 +177,13 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
                 fontSize: '12px',
                 fontWeight: 'bold',
                 backdropFilter: 'blur(4px)',
-                zIndex: 1,
+                zIndex: 2,
               }}
             >
               #{rank}
             </div>
           )}
-          {age_rating === '18' && <div style={adultBadgeStyle}>19+</div>}
+          {age_rating === '19+' && <div style={adultBadgeStyle}>19+</div>}
           <div style={overlayStyle}>
             {isHovered && (
               <div style={hoverInfoStyle}>
@@ -177,7 +195,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
                 >
                   {title}
                 </div>
-                {director && (
+                {director?.name && (
                   <div
                     style={{
                       fontSize: watchaTokens.typography.fontSize.xs,
@@ -185,7 +203,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
                       marginTop: '2px',
                     }}
                   >
-                    감독: {director}
+                    감독: {director.name}
                   </div>
                 )}
                 <div
@@ -195,7 +213,7 @@ export const MovieCard = forwardRef<HTMLDivElement, MovieCardProps>(
                     marginTop: '4px',
                   }}
                 >
-                  평점 ★ {calculatedRating.toFixed(1)} ({review_count}명)
+                  평점 ★ {averageRating.toFixed(1)} ({review_count}명)
                 </div>
               </div>
             )}

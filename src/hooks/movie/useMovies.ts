@@ -1,22 +1,76 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { Movie } from '@/types/movie';
+import { MoviesApiResponse } from '@/types/api';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:4000/api';
-const ITEMS_PER_PAGE = 20;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+const ITEMS_PER_PAGE = Number(process.env.NEXT_PUBLIC_ITEMS_PER_PAGE) || 20;
+
+// 디버깅용 로그
+if (process.env.NODE_ENV === 'development') {
+  console.log('Environment variables:', {
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    API_BASE_URL,
+    ITEMS_PER_PAGE,
+  });
+}
+
+// 영화 데이터 검증 함수 - 백엔드 최신 구조에 맞게 복원
+const validateMovieData = (movie: any): movie is Movie => {
+  const isValid =
+    typeof movie === 'object' &&
+    movie !== null &&
+    typeof movie._id === 'string' &&
+    typeof movie.title === 'string' &&
+    Array.isArray(movie.categories) &&
+    typeof movie.running_time === 'number' &&
+    typeof movie.release_date === 'string' &&
+    typeof movie.rating_total === 'number' &&
+    typeof movie.review_count === 'number' &&
+    typeof movie.audience === 'number' &&
+    typeof movie.description === 'string' &&
+    typeof movie.director === 'object' && // 백엔드가 객체로 업데이트됨
+    movie.director !== null &&
+    typeof movie.director.name === 'string' &&
+    typeof movie.age_rating === 'string' &&
+    typeof movie.is_adult_content === 'boolean'; // 백엔드에 추가됨
+
+  if (process.env.NODE_ENV === 'development' && !isValid) {
+    console.log('Invalid movie data:', movie);
+  }
+
+  return isValid;
+};
 
 export function useMovies() {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('useMovies hook called'); // 디버깅용
+  }
+
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 중복 요청 방지를 위한 ref
+  const loadingRef = useState({ isLoading: false })[0];
 
   const loadMovies = useCallback(
     async (pageNum: number = 1, categories: string[] = [], append: boolean = false) => {
-      if (loading) return;
+      // 이미 로딩 중이면 중복 요청 방지
+      if (loadingRef.isLoading) {
+        return;
+      }
 
+      loadingRef.isLoading = true;
       setLoading(true);
+      setError(null); // 새로운 요청 시 에러 초기화
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Loading movies with:', { pageNum, categories, append }); // 디버깅용
+      }
 
       try {
         let url = `${API_BASE_URL}/movies?page=${pageNum}&limit=${ITEMS_PER_PAGE}`;
@@ -29,11 +83,40 @@ export function useMovies() {
           url += `&sort=popular`;
         }
 
-        console.log('API 호출 URL:', url);
-        const response = await axios.get(url);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('API URL:', url); // 디버깅용
+        }
 
-        // API 응답 구조 확인
-        const newMovies: Movie[] = response.data.movies || response.data;
+        const response = await axios.get<MoviesApiResponse | Movie[]>(url);
+
+        // API 응답 구조를 안정적으로 처리
+        let newMovies: Movie[] = [];
+
+        if (Array.isArray(response.data)) {
+          // 직접 배열로 반환되는 경우 (레거시 API)
+          newMovies = response.data;
+        } else if (
+          response.data &&
+          typeof response.data === 'object' &&
+          'movies' in response.data
+        ) {
+          // 객체 형태로 반환되는 경우 (새로운 API)
+          newMovies = response.data.movies || [];
+        } else {
+          throw new Error('API 응답 형식이 올바르지 않습니다.');
+        }
+
+        // 데이터 검증
+        const validMovies = newMovies.filter(validateMovieData);
+        if (validMovies.length !== newMovies.length) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(
+              `${newMovies.length - validMovies.length}개의 잘못된 영화 데이터가 제외되었습니다.`,
+            );
+          }
+        }
+
+        newMovies = validMovies;
 
         // 카테고리가 없을 때 인기 순위 추가
         const moviesWithRank =
@@ -45,25 +128,56 @@ export function useMovies() {
             : newMovies;
 
         if (append) {
-          setMovies((prev) => [...prev, ...moviesWithRank]);
+          setMovies((prev) => {
+            // 기존 영화 ID들을 Set으로 관리하여 중복 확인
+            const existingIds = new Set(prev.map((movie) => movie._id));
+            const newUniqueMovies = moviesWithRank.filter((movie) => !existingIds.has(movie._id));
+
+            // 중복된 영화가 있으면 로그 출력 (개발 환경에서만)
+            if (process.env.NODE_ENV === 'development') {
+              const duplicateCount = moviesWithRank.length - newUniqueMovies.length;
+              if (duplicateCount > 0) {
+                console.warn(`${duplicateCount}개의 중복 영화가 제외되었습니다.`);
+              }
+            }
+
+            return [...prev, ...newUniqueMovies];
+          });
         } else {
           setMovies(moviesWithRank);
           setPage(1);
         }
 
-        setHasMore(newMovies.length >= ITEMS_PER_PAGE);
-      } catch (error) {
-        console.error('영화 로드 실패:', error);
-        if (axios.isAxiosError(error)) {
-          console.error('에러 상세:', error.response?.data || error.message);
-        } else {
-          console.error('에러 상세:', String(error));
+        // 서버에서 반환된 영화 수가 요청한 개수보다 적으면 더 이상 데이터 없음
+        setHasMore(newMovies.length === ITEMS_PER_PAGE);
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('영화 로드 실패:', err);
         }
+
+        let errorMessage = '영화를 불러오는 중 오류가 발생했습니다.';
+
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) {
+            errorMessage = '요청한 페이지를 찾을 수 없습니다.';
+          } else if (err.response?.status === 500) {
+            errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+          } else if (err.code === 'NETWORK_ERROR') {
+            errorMessage = '네트워크 연결을 확인해주세요.';
+          } else if (err.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          }
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+
+        setError(errorMessage);
       } finally {
+        loadingRef.isLoading = false;
         setLoading(false);
       }
     },
-    [loading],
+    [loadingRef], // loadingRef를 dependency에 추가
   );
 
   const loadNextPage = useCallback(
@@ -76,12 +190,99 @@ export function useMovies() {
     [page, hasMore, loading, loadMovies],
   );
 
+  const loadMoviesByIds = useCallback(
+    async (movieIds: string[]) => {
+      if (!movieIds || movieIds.length === 0) {
+        setMovies([]);
+        return;
+      }
+
+      // 이미 로딩 중이면 중복 요청 방지
+      if (loadingRef.isLoading) {
+        return;
+      }
+
+      loadingRef.isLoading = true;
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Loading movies by IDs:', movieIds);
+        }
+
+        // 각 영화 ID에 대해 개별 API 호출
+        const moviePromises = movieIds.map(async (id) => {
+          try {
+            const url = `${API_BASE_URL}/movies/${id}`;
+            const response = await axios.get<Movie>(url);
+            return response.data;
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`Failed to load movie with ID ${id}:`, error);
+            }
+            return null; // 실패한 경우 null 반환
+          }
+        });
+
+        const movieResults = await Promise.all(moviePromises);
+
+        // null이 아닌 영화들만 필터링
+        const validMovieResults = movieResults.filter((movie): movie is Movie => movie !== null);
+
+        // 데이터 검증
+        const validMovies = validMovieResults.filter(validateMovieData);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Loaded ${validMovies.length} movies out of ${movieIds.length} requested`);
+          if (validMovies.length !== validMovieResults.length) {
+            console.warn(
+              `${validMovieResults.length - validMovies.length}개의 잘못된 영화 데이터가 제외되었습니다.`,
+            );
+          }
+        }
+
+        setMovies(validMovies);
+        setPage(1);
+        setHasMore(false); // ID로 검색할 때는 페이지네이션 없음
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('영화 ID로 로드 실패:', err);
+        }
+
+        let errorMessage = '영화를 불러오는 중 오류가 발생했습니다.';
+
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) {
+            errorMessage = '요청한 영화를 찾을 수 없습니다.';
+          } else if (err.response?.status === 500) {
+            errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+          } else if (err.code === 'NETWORK_ERROR') {
+            errorMessage = '네트워크 연결을 확인해주세요.';
+          } else if (err.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          }
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+
+        setError(errorMessage);
+      } finally {
+        loadingRef.isLoading = false;
+        setLoading(false);
+      }
+    },
+    [loadingRef], // loadingRef를 dependency에 추가
+  );
+
   return {
     movies,
     loading,
     hasMore,
+    error,
     loadMovies,
     loadNextPage,
+    loadMoviesByIds,
     setMovies,
     setPage,
     setHasMore,
