@@ -4,7 +4,7 @@ export interface CastMember {
 }
 
 export interface Movie {
-  _id?: string;
+  _id: string;
   title: string;
   categories: string[];
   running_time: number;
