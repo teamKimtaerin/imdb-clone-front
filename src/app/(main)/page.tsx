@@ -123,7 +123,7 @@ export default function WatchaMainPage() {
       >
         <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '20px' }}>
           {activeCategories.length === 0
-            ? '🔥 인기 영화 TOP 20'
+            ? '🔥 KTR: 큐레이션'
             : `🎬 ${activeCategories.join(', ')} 영화`}
         </h2>
 
@@ -138,72 +138,26 @@ export default function WatchaMainPage() {
           {filteredMovies.map((movie, index) => {
             const isLastItem = index === filteredMovies.length - 1;
             return (
-              <div
-                key={movie.id}
+              <MovieCard
+                key={movie._id}
                 ref={isLastItem ? lastMovieRef : null}
-                style={{
-                  position: 'relative',
-                  paddingBottom: '145%',
-                  background: '#1c1c1c',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.03)')}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-              >
-                {movie.rank && activeCategories.length === 0 && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '8px',
-                      left: '8px',
-                      background: 'rgba(0,0,0,0.7)',
-                      color: '#fff',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      backdropFilter: 'blur(4px)',
-                    }}
-                  >
-                    #{movie.rank}
-                  </div>
-                )}
-                {movie.imageUrl ? (
-                  <img
-                    src={movie.imageUrl}
-                    alt={movie.title}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      fontSize: '14px',
-                      color: '#666',
-                      textAlign: 'center',
-                      padding: '20px',
-                    }}
-                  >
-                    {movie.title}
-                  </div>
-                )}
-              </div>
+                _id={movie._id}
+                title={movie.title}
+                categories={movie.categories}
+                running_time={movie.running_time}
+                release_date={movie.release_date}
+                rating_total={movie.rating_total}
+                review_count={movie.review_count}
+                audience={movie.audience}
+                trailer_url={movie.trailer_url}
+                description={movie.description}
+                director={movie.director}
+                poster_url={movie.poster_url}
+                age_rating={movie.age_rating}
+                created_at={movie.created_at}
+                __v={movie.__v}
+                rank={movie.rank && activeCategories.length === 0 ? movie.rank : undefined}
+              />
             );
           })}
         </div>
