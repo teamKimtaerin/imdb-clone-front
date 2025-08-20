@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data.data?.user) {
       setUser(data.data.user);
-      router.push('/dashboard');
+      router.push('/');
     }
   };
 

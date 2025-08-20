@@ -160,7 +160,7 @@ const RegisterForm = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        router.push('/dashboard');
+        router.push('/');
       } else {
         setError(data.message || '회원가입에 실패했습니다.');
       }
