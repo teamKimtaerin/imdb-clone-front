@@ -1,9 +1,11 @@
 // src/components/common/NavigationBar/NavigationBar.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { watchaTokens } from '@/styles/tokens';
 import { NavigationBarProps } from '@/types/navigationBar';
+import { useSearchStore } from '@/store/searchStore';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
   activeMenu = '홈',
@@ -13,7 +15,24 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   const [searchValue, setSearchValue] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  // Zustand 스토어에서 검색 관련 상태와 액션 가져오기
+  const { performSearch, isLoading } = useSearchStore();
+
+  // 0.5초 디바운스 적용
+  const debouncedSearchValue = useDebounce(searchValue, 500);
+
   const menuItems = ['홈', '탐색', '평가', '보고싶어요', '프로필'];
+
+  // 디바운스된 검색어가 변경될 때마다 API 호출
+  useEffect(() => {
+    if (debouncedSearchValue !== undefined) {
+      performSearch(debouncedSearchValue);
+      // 기존 onSearch 콜백도 호출 (하위 호환성)
+      if (onSearch) {
+        onSearch(debouncedSearchValue);
+      }
+    }
+  }, [debouncedSearchValue, performSearch, onSearch]);
 
   const navStyle: React.CSSProperties = {
     background: watchaTokens.colors.background,
@@ -102,9 +121,17 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   };
 
   const handleSearch = () => {
-    if (onSearch && searchValue.trim()) {
-      onSearch(searchValue);
+    if (searchValue.trim()) {
+      // 즉시 검색 실행 (Enter 키나 검색 아이콘 클릭 시)
+      performSearch(searchValue);
+      if (onSearch) {
+        onSearch(searchValue);
+      }
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
   };
 
   return (
@@ -139,14 +166,14 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
             type="text"
             placeholder="작품 제목, 배우, 감독을 검색해보세요"
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onChange={handleInputChange}
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setIsSearchFocused(false)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             style={searchStyle}
           />
           <span style={searchIconStyle} onClick={handleSearch}>
-            🔍
+            {isLoading ? '⏳' : '🔍'}
           </span>
         </div>
 
