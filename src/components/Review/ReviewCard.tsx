@@ -31,9 +31,6 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
             <StarRating value={rating} readonly={true} size="sm" />
           </div>
 
-          {/* 리뷰 제목 (있는 경우) */}
-          {title && <h4 className="text-white font-medium mb-1 line-clamp-1">{title}</h4>}
-
           {/* 스포일러 처리 */}
           {is_spoiler && !showSpoiler ? (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 mt-2">
