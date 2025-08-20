@@ -1,11 +1,16 @@
 'use client';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { NavigationBar } from '@/components/common/NavigationBar';
+import dynamic from 'next/dynamic';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { MovieCard } from '@/components/movie/MovieCard';
 import { SimpleFooter } from '@/components/common/Footer/Footer';
 import { useMovies } from '@/hooks/movie/useMovies';
+
+const NavigationBar = dynamic(
+  () => import('@/components/common/NavigationBar').then((mod) => mod.NavigationBar),
+  { ssr: false },
+);
 
 const categoriesList = [
   '액션',
