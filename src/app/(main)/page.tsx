@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { NavigationBar } from '@/components/common/NavigationBar';
 import { CategoryTag } from '@/components/common/CategoryTag';
 import { MovieCard } from '@/components/movie/MovieCard';
@@ -22,6 +22,7 @@ const categoriesList = [
 
 export default function WatchaMainPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   if (process.env.NODE_ENV === 'development') {
     console.log('WatchaMainPage component rendered'); // 디버깅용
@@ -33,21 +34,31 @@ export default function WatchaMainPage() {
     console.log('useMovies returned:', { movies: movies.length, loading, hasMore }); // 디버깅용
   }
 
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  // URL에서 카테고리 파라미터 읽기
+  const categoryParam = searchParams.get('category');
+  const initialCategories = categoryParam ? categoryParam.split(',').filter(Boolean) : [];
+
+  const [activeCategories, setActiveCategories] = useState<string[]>(initialCategories);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastMovieRef = useRef<HTMLDivElement | null>(null);
+
+  // URL 파라미터가 변경될 때 activeCategories 업데이트
+  useEffect(() => {
+    const newCategories = categoryParam ? categoryParam.split(',').filter(Boolean) : [];
+    setActiveCategories(newCategories);
+  }, [categoryParam]);
 
   // 초기 로드 - 컴포넌트 마운트 시 즉시 실행
   useEffect(() => {
     console.log('🚀 Initial load useEffect triggered'); // 디버깅용
     if (!isInitialized) {
       console.log('📞 Calling loadMovies(1, []) for initial load'); // 디버깅용
-      loadMovies(1, []);
+      loadMovies(1, initialCategories);
       setIsInitialized(true);
     }
-  }, [loadMovies, isInitialized]); // isInitialized 추가
+  }, [loadMovies, isInitialized, initialCategories]); // initialCategories 추가
 
   // 카테고리가 변경될 때 영화 다시 로드
   useEffect(() => {
@@ -94,11 +105,20 @@ export default function WatchaMainPage() {
     router.push(`/movie/${movieId}`);
   };
 
-  // 카테고리 클릭
+  // 카테고리 클릭 - URL 업데이트 포함
   const handleCategoryClick = (category: string) => {
-    setActiveCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
-    );
+    const newCategories = activeCategories.includes(category)
+      ? activeCategories.filter((c) => c !== category)
+      : [...activeCategories, category];
+
+    // URL 업데이트
+    const params = new URLSearchParams();
+    if (newCategories.length > 0) {
+      params.set('category', newCategories.join(','));
+    }
+
+    const newUrl = newCategories.length > 0 ? `/?${params.toString()}` : '/';
+    router.push(newUrl);
   };
 
   // 검색은 NavigationBar에서 처리하므로 더미 함수

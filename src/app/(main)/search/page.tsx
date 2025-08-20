@@ -71,6 +71,12 @@ function SearchContent() {
     // 검색어가 있으면 URL이 이미 변경되므로 추가 처리 불필요
   };
 
+  // 영화 카드 클릭 핸들러
+  const handleMovieClick = (movieId: string) => {
+    console.log('Movie clicked:', movieId); // 디버깅용
+    router.push(`/movie/${movieId}`);
+  };
+
   return (
     <div
       style={{
@@ -163,6 +169,7 @@ function SearchContent() {
                 age_rating={movie.age_rating}
                 created_at={movie.created_at}
                 __v={movie.__v}
+                onClick={() => handleMovieClick(movie._id)}
               />
             ))}
           </div>
