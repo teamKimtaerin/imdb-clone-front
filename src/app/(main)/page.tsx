@@ -20,7 +20,7 @@ const categoriesList = [
 ];
 
 export default function WatchaMainPage() {
-  const { movies, loading, hasMore, error, loadMovies, loadNextPage } = useMovies();
+  const { movies, loading, hasMore, loadMovies, loadNextPage } = useMovies();
 
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,11 +28,13 @@ export default function WatchaMainPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastMovieRef = useRef<HTMLDivElement | null>(null);
 
-  // 초기 로드 및 카테고리 변경
+  // 초기 로드
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`useEffect 실행 - 카테고리 변경: [${activeCategories.join(', ')}]`);
-    }
+    loadMovies(1, activeCategories);
+  }, [loadMovies, activeCategories]);
+
+  // 카테고리 변경
+  useEffect(() => {
     loadMovies(1, activeCategories);
   }, [loadMovies, activeCategories]);
 
@@ -78,13 +80,6 @@ export default function WatchaMainPage() {
   const filteredMovies = searchQuery
     ? movies.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
     : movies;
-
-  // 디버깅: 배열 크기 확인 (개발 환경에서만)
-  if (process.env.NODE_ENV === 'development') {
-    console.log(
-      `데이터 상태 - movies: ${movies.length}개, filteredMovies: ${filteredMovies.length}개, searchQuery: "${searchQuery}"`,
-    );
-  }
 
   return (
     <div
@@ -143,13 +138,12 @@ export default function WatchaMainPage() {
             marginBottom: '40px',
           }}
         >
-          {filteredMovies.map((movie) => {
-            // 모든 상황에서 무한 스크롤 동작 - movies 배열의 마지막 아이템 기준
-            const isLastItemInMovies = movies[movies.length - 1]?._id === movie._id;
+          {filteredMovies.map((movie, index) => {
+            const isLastItem = index === filteredMovies.length - 1;
             return (
               <MovieCard
                 key={movie._id}
-                ref={isLastItemInMovies ? lastMovieRef : null}
+                ref={isLastItem ? lastMovieRef : null}
                 _id={movie._id}
                 title={movie.title}
                 categories={movie.categories}
@@ -172,36 +166,6 @@ export default function WatchaMainPage() {
           })}
         </div>
 
-        {error && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '60px 20px',
-              color: '#ff6b6b',
-              background: 'rgba(255, 107, 107, 0.1)',
-              borderRadius: '8px',
-              marginBottom: '20px',
-            }}
-          >
-            <div style={{ fontSize: '18px', marginBottom: '10px' }}>⚠️ 오류 발생</div>
-            <div style={{ fontSize: '14px', marginBottom: '20px' }}>{error}</div>
-            <button
-              onClick={() => loadMovies(1, activeCategories)}
-              style={{
-                background: '#ff6b6b',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-              }}
-            >
-              다시 시도
-            </button>
-          </div>
-        )}
-
         {loading && (
           <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
             영화를 불러오는 중...
@@ -209,9 +173,7 @@ export default function WatchaMainPage() {
         )}
         {!hasMore && filteredMovies.length > 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-            {activeCategories.length === 0
-              ? '모든 영화를 불러왔습니다'
-              : `${activeCategories.join(', ')} 카테고리의 모든 영화를 불러왔습니다`}
+            모든 영화를 불러왔습니다
           </div>
         )}
         {filteredMovies.length === 0 && !loading && (
