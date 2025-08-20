@@ -1,6 +1,5 @@
-// src/components/common/Button/Button.stories.tsx
 import { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Button, IconButton } from './Button';
+import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
   title: 'Common/Button',
@@ -31,10 +30,6 @@ const meta: Meta<typeof Button> = {
       control: 'boolean',
       description: '전체 너비 사용 여부',
     },
-    loading: {
-      control: 'boolean',
-      description: '로딩 상태',
-    },
     disabled: {
       control: 'boolean',
       description: '비활성화 상태',
@@ -42,6 +37,10 @@ const meta: Meta<typeof Button> = {
     rounded: {
       control: 'boolean',
       description: '원형 버튼 (아이콘 전용)',
+    },
+    className: {
+      control: 'text',
+      description: '추가 CSS 클래스',
     },
   },
 };
@@ -109,46 +108,22 @@ export const Sizes: Story = {
   ),
 };
 
-// 로딩 상태
-export const Loading: Story = {
-  render: () => (
-    <div style={{ display: 'flex', gap: '16px' }}>
-      <Button loading>로딩 중...</Button>
-      <Button variant="secondary" loading>
-        처리 중...
-      </Button>
-    </div>
-  ),
-};
-
-// 아이콘 포함
-export const WithIcons: Story = {
-  render: () => (
-    <div
-      style={{ display: 'flex', gap: '16px', flexDirection: 'column', alignItems: 'flex-start' }}
-    >
-      <Button startIcon="▶">재생</Button>
-      <Button endIcon="→">다음 에피소드</Button>
-      <Button startIcon="+" endIcon="→">
-        내 리스트에 추가
-      </Button>
-    </div>
-  ),
-};
-
-// 아이콘 버튼
-export const IconButtons: Story = {
+// 원형 버튼 (아이콘용)
+export const RoundedButtons: Story = {
   render: () => (
     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-      <IconButton size="sm" variant="primary">
+      <Button size="sm" variant="primary" rounded>
         ♥
-      </IconButton>
-      <IconButton size="md" variant="secondary">
+      </Button>
+      <Button size="md" variant="secondary" rounded>
         ⭐
-      </IconButton>
-      <IconButton size="lg" variant="ghost">
+      </Button>
+      <Button size="lg" variant="ghost" rounded>
         ⚙
-      </IconButton>
+      </Button>
+      <Button size="xl" variant="danger" rounded>
+        ×
+      </Button>
     </div>
   ),
 };
@@ -157,11 +132,31 @@ export const IconButtons: Story = {
 export const FullWidth: Story = {
   render: () => (
     <div style={{ width: '400px' }}>
-      <Button fullWidth variant="primary" style={{ marginBottom: '8px' }}>
+      <Button fullWidth variant="primary" className="mb-2">
         지금 시청하기
       </Button>
       <Button fullWidth variant="secondary">
         나중에 보기
+      </Button>
+    </div>
+  ),
+};
+
+// 커스텀 스타일링
+export const CustomStyling: Story = {
+  render: () => (
+    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+      <Button
+        variant="primary"
+        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+      >
+        그라데이션 버튼
+      </Button>
+      <Button variant="secondary" className="border-green-500 text-green-500 hover:bg-green-50">
+        커스텀 색상
+      </Button>
+      <Button variant="ghost" className="shadow-lg hover:shadow-xl transition-shadow">
+        그림자 효과
       </Button>
     </div>
   ),
@@ -189,7 +184,6 @@ export const AllVariants: Story = {
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <Button>Normal</Button>
           <Button disabled>Disabled</Button>
-          <Button loading>Loading</Button>
         </div>
       </div>
 
@@ -202,6 +196,72 @@ export const AllVariants: Story = {
           <Button size="md">Medium</Button>
           <Button size="lg">Large</Button>
           <Button size="xl">Extra Large</Button>
+        </div>
+      </div>
+
+      {/* 형태별 */}
+      <div>
+        <h3 style={{ color: '#fff', marginBottom: '12px' }}>Shapes</h3>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Button variant="primary">기본 형태</Button>
+          <Button variant="primary" rounded>
+            ♥
+          </Button>
+          <Button variant="primary" fullWidth className="max-w-xs">
+            전체 너비
+          </Button>
+        </div>
+      </div>
+    </div>
+  ),
+};
+
+// 실제 사용 예시
+export const RealWorldExamples: Story = {
+  render: () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* 로그인 폼 예시 */}
+      <div>
+        <h3 style={{ color: '#fff', marginBottom: '12px' }}>Login Form</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '300px' }}>
+          <Button variant="primary" size="lg" fullWidth>
+            로그인
+          </Button>
+          <Button variant="text" size="sm">
+            비밀번호를 잊으셨나요?
+          </Button>
+        </div>
+      </div>
+
+      {/* 카드 액션 예시 */}
+      <div>
+        <h3 style={{ color: '#fff', marginBottom: '12px' }}>Card Actions</h3>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button variant="primary" size="md">
+            시청하기
+          </Button>
+          <Button variant="secondary" size="md">
+            내 리스트에 추가
+          </Button>
+          <Button variant="ghost" size="md" rounded>
+            ♥
+          </Button>
+        </div>
+      </div>
+
+      {/* 관리자 액션 예시 */}
+      <div>
+        <h3 style={{ color: '#fff', marginBottom: '12px' }}>Admin Actions</h3>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button variant="ghost" size="sm">
+            편집
+          </Button>
+          <Button variant="secondary" size="sm">
+            복사
+          </Button>
+          <Button variant="danger" size="sm">
+            삭제
+          </Button>
         </div>
       </div>
     </div>
